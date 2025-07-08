@@ -28,21 +28,40 @@ interface LexiconShellProps {
 
 const SEARCH_LIMIT = 3;
 
+type Usage = {
+  count: number;
+  date: string; // YYYY-MM-DD
+};
+
 export function LexiconShell({ words, categories, locations }: LexiconShellProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [selectedWord, setSelectedWord] = useState<Word | null>(words[0] || null);
-
-  const [searchCount, setSearchCount] = useState(0);
+  
+  const [usage, setUsage] = useState<Usage>({ count: 0, date: '' });
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     // This runs only on the client, after hydration
-    const storedCount = localStorage.getItem('lexiconSearchCount');
-    if (storedCount) {
-      setSearchCount(parseInt(storedCount, 10));
+    const today = new Date().toISOString().split('T')[0];
+    let storedUsage: Usage;
+
+    try {
+        const item = localStorage.getItem('lexiconUsage');
+        storedUsage = item ? JSON.parse(item) : { count: 0, date: today };
+
+        if (storedUsage.date !== today) {
+            // It's a new day, reset the count
+            storedUsage = { count: 0, date: today };
+            localStorage.setItem('lexiconUsage', JSON.stringify(storedUsage));
+        }
+    } catch (error) {
+        // If parsing fails, reset to default
+        storedUsage = { count: 0, date: today };
     }
+    
+    setUsage(storedUsage);
   }, []);
 
 
@@ -82,12 +101,12 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
   const handleWordSelect = (word: Word) => {
     // In a real app, you would check if the user is authenticated.
     // For this demo, we'll check the count for any user.
-    if (searchCount >= SEARCH_LIMIT) {
+    if (usage.count >= SEARCH_LIMIT) {
       setShowLoginPrompt(true);
     } else {
-      const newCount = searchCount + 1;
-      setSearchCount(newCount);
-      localStorage.setItem('lexiconSearchCount', newCount.toString());
+      const newUsage = { ...usage, count: usage.count + 1 };
+      setUsage(newUsage);
+      localStorage.setItem('lexiconUsage', JSON.stringify(newUsage));
       setSelectedWord(word);
     }
   };
@@ -125,9 +144,9 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
         <AlertDialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>You've reached your search limit</AlertDialogTitle>
+                    <AlertDialogTitle>You've reached your daily limit</AlertDialogTitle>
                     <AlertDialogDescription>
-                        You can view up to {SEARCH_LIMIT} word definitions as a guest. Please log in with Google to continue exploring the lexicon.
+                        You can view up to {SEARCH_LIMIT} word definitions per day as a guest. Please log in with Google for unlimited access.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
