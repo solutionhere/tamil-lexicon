@@ -1,12 +1,24 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { Word, Category, Location } from '@/lib/types';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { LexiconHeader } from '@/components/layout/lexicon-header';
 import { LexiconSidebar } from '@/components/layout/lexicon-sidebar';
 import { WordList } from '@/components/word-list';
 import { WordDetail } from '@/components/word-detail';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from '@/components/ui/button';
+
 
 interface LexiconShellProps {
   words: Word[];
@@ -14,11 +26,25 @@ interface LexiconShellProps {
   locations: Location[];
 }
 
+const SEARCH_LIMIT = 3;
+
 export function LexiconShell({ words, categories, locations }: LexiconShellProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [selectedWord, setSelectedWord] = useState<Word | null>(words[0] || null);
+
+  const [searchCount, setSearchCount] = useState(0);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  useEffect(() => {
+    // This runs only on the client, after hydration
+    const storedCount = localStorage.getItem('lexiconSearchCount');
+    if (storedCount) {
+      setSearchCount(parseInt(storedCount, 10));
+    }
+  }, []);
+
 
   const filteredWords = useMemo(() => {
     return words.filter(word => {
@@ -53,6 +79,19 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
     );
   };
   
+  const handleWordSelect = (word: Word) => {
+    // In a real app, you would check if the user is authenticated.
+    // For this demo, we'll check the count for any user.
+    if (searchCount >= SEARCH_LIMIT) {
+      setShowLoginPrompt(true);
+    } else {
+      const newCount = searchCount + 1;
+      setSearchCount(newCount);
+      localStorage.setItem('lexiconSearchCount', newCount.toString());
+      setSelectedWord(word);
+    }
+  };
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -73,7 +112,7 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
                 <WordList
                   words={filteredWords}
                   selectedWord={selectedWord}
-                  onWordSelect={setSelectedWord}
+                  onWordSelect={handleWordSelect}
                 />
               </div>
               <div className="hidden overflow-y-auto bg-card md:block">
@@ -82,6 +121,26 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
             </main>
           </div>
         </SidebarInset>
+
+        <AlertDialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>You've reached your search limit</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        You can view up to {SEARCH_LIMIT} word definitions as a guest. Please log in with Google to continue exploring the lexicon.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                        {/* In a real app, this would trigger the Google Sign-In flow */}
+                        <Button onClick={() => console.log('Login with Google clicked')}>
+                            Login with Google
+                        </Button>
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </SidebarProvider>
   );
 }
