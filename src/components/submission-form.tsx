@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-import { submissionSchema, submitWord, suggestTransliteration, suggestTamilWord } from '@/app/submit/actions';
+import { submissionSchema } from '@/lib/schemas';
+import { submitWord, suggestTransliteration, suggestTamilWord } from '@/app/submit/actions';
 import type { Category, Location } from '@/lib/types';
 
 import { Button } from '@/components/ui/button';
