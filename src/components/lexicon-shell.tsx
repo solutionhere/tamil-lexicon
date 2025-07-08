@@ -10,6 +10,7 @@ import { WordDetail } from '@/components/word-detail';
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -108,13 +109,23 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
       return;
     }
 
-    // For guests, check the usage count.
+    // if same word is clicked, just make sure it's selected and do nothing else.
+    if (word.id === selectedWord?.id) {
+        setSelectedWord(word);
+        return;
+    }
+
+    // For guests, check the usage count when selecting a NEW word.
     if (usage.count >= SEARCH_LIMIT) {
       setShowLoginPrompt(true);
     } else {
       const newUsage = { ...usage, count: usage.count + 1 };
       setUsage(newUsage);
-      localStorage.setItem('lexiconUsage', JSON.stringify(newUsage));
+      try {
+        localStorage.setItem('lexiconUsage', JSON.stringify(newUsage));
+      } catch (error) {
+        console.error("Could not write to localStorage", error);
+      }
       setSelectedWord(word);
     }
   };
