@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useTransition } from 'react';
+import React, { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -47,11 +47,17 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
   const handleSuggestTransliteration = () => {
     startAiTransition(async () => {
       const result = await suggestTransliteration(tamilWordValue);
-      if (result.transliteration) {
+      if (result.error) {
+        toast({
+          title: 'Suggestion Failed',
+          description: result.error,
+          variant: 'destructive',
+        });
+      } else if (result.transliteration) {
         form.setValue('transliteration', result.transliteration, { shouldValidate: true });
         toast({ title: 'Suggestion applied!', description: `Set transliteration to "${result.transliteration}".` });
       } else {
-        toast({ title: 'Suggestion failed', description: 'Could not generate a transliteration.', variant: 'destructive' });
+        toast({ title: 'Suggestion Failed', description: 'Could not generate a transliteration for the given word.', variant: 'destructive' });
       }
     });
   };
@@ -159,7 +165,7 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
                       <Input placeholder="Hey dude, how are you?" {...field} />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
+                  </Ite`m>
                 )}
               />
             </div>
