@@ -26,7 +26,7 @@ type FormData = z.infer<typeof submissionSchema>;
 
 export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
   const { toast } = useToast();
-  const [isAiPending, startAiTransition] = useTransition();
+  const [isSuggestionPending, startSuggestionTransition] = useTransition();
   const [isFormPending, startFormTransition] = useTransition();
 
   const form = useForm<FormData>({
@@ -45,19 +45,11 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
   const tamilWordValue = form.watch('tamilWord');
 
   const handleSuggestTransliteration = () => {
-    startAiTransition(async () => {
+    startSuggestionTransition(async () => {
       const result = await suggestTransliteration(tamilWordValue);
-      if (result.error) {
-        toast({
-          title: 'Suggestion Failed',
-          description: result.error,
-          variant: 'destructive',
-        });
-      } else if (result.transliteration) {
+      if (result.transliteration) {
         form.setValue('transliteration', result.transliteration, { shouldValidate: true });
         toast({ title: 'Suggestion applied!', description: `Set transliteration to "${result.transliteration}".` });
-      } else {
-        toast({ title: 'Suggestion Failed', description: 'Could not generate a transliteration for the given word.', variant: 'destructive' });
       }
     });
   };
@@ -117,8 +109,8 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
                       <FormControl>
                         <Input placeholder="e.g., Machi" {...field} />
                       </FormControl>
-                      <Button type="button" variant="outline" size="icon" onClick={handleSuggestTransliteration} disabled={!tamilWordValue || isAiPending} aria-label="Suggest transliteration">
-                        {isAiPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                      <Button type="button" variant="outline" size="icon" onClick={handleSuggestTransliteration} disabled={!tamilWordValue || isSuggestionPending} aria-label="Suggest transliteration">
+                        {isSuggestionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
                       </Button>
                     </div>
                     <FormMessage />

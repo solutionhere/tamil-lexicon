@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from 'zod';
-import { suggestTransliteration as suggestTransliterationFlow } from '@/ai/flows/suggest-transliteration';
+import { transliterate } from '@/lib/transliteration';
 
 export const submissionSchema = z.object({
   tamilWord: z.string().min(1, 'Tamil word is required.'),
@@ -42,19 +42,10 @@ export async function submitWord(
   };
 }
 
-export async function suggestTransliteration(tamilWord: string): Promise<{ transliteration: string; error?: string }> {
+export async function suggestTransliteration(tamilWord: string): Promise<{ transliteration: string }> {
     if (!tamilWord) return { transliteration: '' };
-    try {
-        const result = await suggestTransliterationFlow({ tamilWord });
-        return { transliteration: result.transliteration };
-    } catch (error) {
-        console.error("Transliteration failed:", error);
-        // This is a user-facing error message.
-        // It's generic to avoid exposing implementation details.
-        // In a real app, you'd want to log the full `error` object for debugging.
-        return { 
-            transliteration: '',
-            error: 'AI suggestion service is currently unavailable. Please enter the transliteration manually.' 
-        };
-    }
+    
+    const transliteration = transliterate(tamilWord);
+    
+    return { transliteration };
 }
