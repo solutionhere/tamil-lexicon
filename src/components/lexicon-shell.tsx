@@ -10,7 +10,6 @@ import { WordDetail } from '@/components/word-detail';
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -18,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/auth-provider';
 
 
 interface LexiconShellProps {
@@ -34,6 +34,7 @@ type Usage = {
 };
 
 export function LexiconShell({ words, categories, locations }: LexiconShellProps) {
+  const { user, signInWithGoogle } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
@@ -44,6 +45,8 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
 
   useEffect(() => {
     // This runs only on the client, after hydration
+    if (user) return; // Don't track usage for logged-in users
+
     const today = new Date().toISOString().split('T')[0];
     let storedUsage: Usage;
 
@@ -62,7 +65,7 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
     }
     
     setUsage(storedUsage);
-  }, []);
+  }, [user]); // Rerun if user logs in/out
 
 
   const filteredWords = useMemo(() => {
@@ -99,8 +102,13 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
   };
   
   const handleWordSelect = (word: Word) => {
-    // In a real app, you would check if the user is authenticated.
-    // For this demo, we'll check the count for any user.
+    // If the user is logged in, they have unlimited access.
+    if (user) {
+      setSelectedWord(word);
+      return;
+    }
+
+    // For guests, check the usage count.
     if (usage.count >= SEARCH_LIMIT) {
       setShowLoginPrompt(true);
     } else {
@@ -110,6 +118,11 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
       setSelectedWord(word);
     }
   };
+  
+  const handleLogin = async () => {
+    await signInWithGoogle();
+    setShowLoginPrompt(false);
+  }
 
   return (
     <SidebarProvider>
@@ -152,8 +165,7 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction asChild>
-                        {/* In a real app, this would trigger the Google Sign-In flow */}
-                        <Button onClick={() => console.log('Login with Google clicked')}>
+                        <Button onClick={handleLogin}>
                             Login with Google
                         </Button>
                     </AlertDialogAction>
