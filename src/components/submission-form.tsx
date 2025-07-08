@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-import { submissionSchema, submitWord, suggestTransliteration } from '@/app/submit/actions';
+import { submissionSchema, submitWord, suggestTransliteration, suggestTamilWord } from '@/app/submit/actions';
 import type { Category, Location } from '@/lib/types';
 
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ type FormData = z.infer<typeof submissionSchema>;
 export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
   const { toast } = useToast();
   const [isSuggestionPending, startSuggestionTransition] = useTransition();
+  const [isTamilSuggestionPending, startTamilSuggestionTransition] = useTransition();
   const [isFormPending, startFormTransition] = useTransition();
 
   const form = useForm<FormData>({
@@ -43,6 +44,7 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
   });
 
   const tamilWordValue = form.watch('tamilWord');
+  const transliterationValue = form.watch('transliteration');
 
   const handleSuggestTransliteration = () => {
     startSuggestionTransition(async () => {
@@ -50,6 +52,16 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
       if (result.transliteration) {
         form.setValue('transliteration', result.transliteration, { shouldValidate: true });
         toast({ title: 'Suggestion applied!', description: `Set transliteration to "${result.transliteration}".` });
+      }
+    });
+  };
+
+  const handleSuggestTamilWord = () => {
+    startTamilSuggestionTransition(async () => {
+      const result = await suggestTamilWord(transliterationValue);
+      if (result.tamilWord) {
+        form.setValue('tamilWord', result.tamilWord, { shouldValidate: true });
+        toast({ title: 'Suggestion applied!', description: `Set Tamil word to "${result.tamilWord}".` });
       }
     });
   };
@@ -92,9 +104,14 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tamil Word (in தமிழ் script)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="எ.கா: மச்சி" {...field} />
-                    </FormControl>
+                     <div className="flex gap-2">
+                        <FormControl>
+                          <Input placeholder="எ.கா: மச்சி" {...field} />
+                        </FormControl>
+                        <Button type="button" variant="outline" size="icon" onClick={handleSuggestTamilWord} disabled={!transliterationValue || isTamilSuggestionPending} aria-label="Suggest Tamil word">
+                          {isTamilSuggestionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -157,7 +174,7 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
                       <Input placeholder="Hey dude, how are you?" {...field} />
                     </FormControl>
                     <FormMessage />
-                  </Ite`m>
+                  </FormItem>
                 )}
               />
             </div>

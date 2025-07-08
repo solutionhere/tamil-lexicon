@@ -1,5 +1,5 @@
 /**
- * @fileOverview Provides a rule-based transliteration from Tamil to English.
+ * @fileOverview Provides rule-based transliteration between Tamil and English.
  * This is a simplified implementation for demonstration purposes.
  */
 
@@ -37,6 +37,33 @@ const transliterationMap: { [key: string]: string } = {
   'ந்': 'n', 'ப்': 'p', 'ம்': 'm', 'ய்': 'y', 'ர்': 'r', 'ல்': 'l', 'வ்': 'v',
   'ழ்': 'zh', 'ள்': 'l', 'ற்': 'r', 'ன்': 'n', 'ஜ்': 'j', 'ஷ்': 'sh', 'ஸ்': 's', 'ஹ்': 'h',
 };
+
+// --- Reverse transliteration setup ---
+const reverseTransliterationMap: { [key: string]: string } = {};
+for (const key in transliterationMap) {
+  // This simple reversal will have ambiguities (e.g., 'la' for both 'ல' and 'ள').
+  // The last one in the map wins. For a robust solution, a more complex system is needed.
+  reverseTransliterationMap[transliterationMap[key]] = key;
+}
+const reverseTransliterateRegex = new RegExp(
+  Object.keys(reverseTransliterationMap)
+    .sort((a, b) => b.length - a.length)
+    .join('|'),
+  'gi'
+);
+
+/**
+ * Transliterates an English string into Tamil based on a predefined map.
+ * This is a simplified implementation and may not be perfectly accurate.
+ * @param englishWord The word in English script.
+ * @returns The transliterated Tamil string.
+ */
+export function reverseTransliterate(englishWord: string): string {
+  if (!englishWord) return '';
+  return englishWord.replace(reverseTransliterateRegex, (matched) => {
+    return reverseTransliterationMap[matched.toLowerCase()] || matched;
+  });
+}
 
 /**
  * Transliterates a Tamil string into English based on a predefined map.

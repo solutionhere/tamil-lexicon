@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from 'zod';
-import { transliterate } from '@/lib/transliteration';
+import { transliterate, reverseTransliterate } from '@/lib/transliteration';
 
 export const submissionSchema = z.object({
   tamilWord: z.string().min(1, 'Tamil word is required.'),
@@ -48,4 +48,12 @@ export async function suggestTransliteration(tamilWord: string): Promise<{ trans
     const transliteration = transliterate(tamilWord);
     
     return { transliteration };
+}
+
+export async function suggestTamilWord(englishWord: string): Promise<{ tamilWord: string }> {
+    if (!englishWord) return { tamilWord: '' };
+
+    const tamilWord = reverseTransliterate(englishWord);
+
+    return { tamilWord };
 }
