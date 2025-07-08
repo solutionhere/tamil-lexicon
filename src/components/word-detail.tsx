@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import React, { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import type { Word, Category, Location } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -37,7 +37,7 @@ interface WordDetailProps {
 export function WordDetail({ word, categories, locations }: WordDetailProps) {
   const { toast } = useToast();
   
-  const [state, formAction] = useFormState(flagWordAction, { message: '' });
+  const [state, formAction] = useActionState(flagWordAction, { message: '' });
 
   React.useEffect(() => {
     if (state.message) {
