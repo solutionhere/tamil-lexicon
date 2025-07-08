@@ -29,6 +29,7 @@ export const words: Word[] = [
     category: 'general',
     location: 'tn',
     status: 'published',
+    isFlagged: false,
   },
   {
     id: '2',
@@ -43,6 +44,7 @@ export const words: Word[] = [
     category: 'college',
     location: 'chennai',
     status: 'published',
+    isFlagged: false,
   },
   {
     id: '3',
@@ -57,6 +59,7 @@ export const words: Word[] = [
     category: 'general',
     location: 'tn',
     status: 'published',
+    isFlagged: true,
   },
   {
     id: '4',
@@ -71,6 +74,7 @@ export const words: Word[] = [
     category: 'college',
     location: 'coimbatore',
     status: 'published',
+    isFlagged: false,
   },
     {
     id: '5',
@@ -85,5 +89,6 @@ export const words: Word[] = [
     category: 'chennai',
     location: 'chennai',
     status: 'published',
+    isFlagged: false,
   },
 ];

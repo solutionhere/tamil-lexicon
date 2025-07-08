@@ -1,9 +1,32 @@
+'use client';
+
+import React from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import type { Word, Category, Location } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Volume2, BookOpen, MapPin } from 'lucide-react';
+import { Volume2, BookOpen, MapPin, Flag, Loader2, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { flagWordAction } from '@/app/words/actions';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+// Component for the submit button to show a pending state
+function FlagButton({ isFlagged }: { isFlagged?: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button variant="outline" size="sm" type="submit" disabled={pending || isFlagged}>
+      {pending ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <Flag className="mr-2 h-4 w-4" />
+      )}
+      {isFlagged ? 'Already Flagged' : 'Flag for Correction'}
+    </Button>
+  );
+}
 
 interface WordDetailProps {
   word: Word | null;
@@ -12,6 +35,27 @@ interface WordDetailProps {
 }
 
 export function WordDetail({ word, categories, locations }: WordDetailProps) {
+  const { toast } = useToast();
+  
+  const [state, formAction] = useFormState(flagWordAction, { message: '' });
+
+  React.useEffect(() => {
+    if (state.message) {
+      if (state.message.startsWith('Error:')) {
+         toast({
+          title: 'Error',
+          description: state.message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Success',
+          description: state.message,
+        });
+      }
+    }
+  }, [state, toast]);
+
   if (!word) {
     return (
       <div className="flex h-full items-center justify-center bg-card p-8">
@@ -29,6 +73,15 @@ export function WordDetail({ word, categories, locations }: WordDetailProps) {
   return (
     <ScrollArea className="h-full bg-card">
       <div className="p-6 lg:p-8">
+        {word.isFlagged && (
+            <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Flagged for Review</AlertTitle>
+                <AlertDescription>
+                    This entry has been flagged by the community and is pending review by moderators.
+                </AlertDescription>
+            </Alert>
+        )}
         <Card className="border-none shadow-none">
           <CardHeader className="px-0">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -69,6 +122,13 @@ export function WordDetail({ word, categories, locations }: WordDetailProps) {
                 <p className="text-base md:text-lg">This term is commonly used in {location?.name}.</p>
               </div>
             </div>
+             <Separator />
+             <div className="pt-2">
+                <form action={formAction}>
+                    <input type="hidden" name="wordId" value={word.id} />
+                    <FlagButton isFlagged={word.isFlagged}/>
+                </form>
+             </div>
           </CardContent>
         </Card>
       </div>

@@ -5,7 +5,7 @@ export type Category = {
 };
 
 export type Location = {
-  id: string;
+  id:string;
   name: string;
   parent?: string;
 };
@@ -23,4 +23,5 @@ export type Word = {
   category: string; // category id
   location: string; // location id
   status: 'published' | 'pending';
+  isFlagged?: boolean;
 };

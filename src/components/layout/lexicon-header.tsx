@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -30,12 +30,17 @@ export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeade
               aria-label="Search words"
             />
         </div>
-        <Link href="/submit" passHref>
-          <Button>
+        <Button asChild variant="secondary">
+          <Link href="/submit">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Suggest a Word
-          </Button>
-        </Link>
+            Suggest
+          </Link>
+        </Button>
+        <Button asChild variant="ghost" size="icon" aria-label="Admin Panel">
+            <Link href="/admin">
+                <Shield className="h-5 w-5" />
+            </Link>
+        </Button>
     </header>
   );
 }
