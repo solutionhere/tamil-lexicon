@@ -12,7 +12,7 @@ interface AuthContextType {
   isSuperAdmin: boolean;
   loading: boolean; // For initial auth check
   isSigningIn: boolean; // For the sign-in process
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => void;
   signOut: () => Promise<void>;
 }
 
@@ -52,33 +52,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = () => {
     if (isSigningIn) return;
     const provider = new GoogleAuthProvider();
     setIsSigningIn(true);
-    try {
-      console.log("Starting signInWithPopup...");
-      await signInWithPopup(auth, provider);
-      console.log("signInWithPopup successful. Waiting for onAuthStateChanged.");
-    } catch (error: any) {
-      if (error.code !== 'auth/popup-closed-by-user') {
-        console.error("Error signing in with Google:", error);
-      } else {
-        console.log("Sign-in popup closed by user.");
-      }
-    } finally {
-      setIsSigningIn(false);
-    }
+    console.log("Starting signInWithPopup...");
+
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        // Success is handled by onAuthStateChanged listener.
+        console.log("signInWithPopup successful for user:", result.user.displayName);
+      })
+      .catch((error: any) => {
+        if (error.code !== 'auth/popup-closed-by-user') {
+          console.error("Error signing in with Google:", error);
+        } else {
+          console.log("Sign-in popup closed by user.");
+        }
+      })
+      .finally(() => {
+        // This will run regardless of success or failure.
+        setIsSigningIn(false);
+      });
   };
 
   const signOut = async () => {
-    setLoading(true);
     try {
       await firebaseSignOut(auth);
     } catch (error) {
       console.error("Error signing out", error);
-    } finally {
-      // onAuthStateChanged will set loading to false
     }
   };
 
