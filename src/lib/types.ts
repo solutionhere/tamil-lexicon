@@ -24,4 +24,5 @@ export type Word = {
   location: string; // location id
   status: 'published' | 'pending';
   isFlagged?: boolean;
+  submittedBy?: string; // User ID of the submitter
 };

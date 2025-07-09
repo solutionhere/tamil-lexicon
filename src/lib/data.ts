@@ -45,6 +45,7 @@ export const words: Word[] = [
     location: 'chennai',
     status: 'published',
     isFlagged: false,
+    submittedBy: 'SAMPLE_USER_ID',
   },
   {
     id: '3',
@@ -88,7 +89,8 @@ export const words: Word[] = [
     pronunciation: '/beːdʒaːr/',
     category: 'chennai',
     location: 'chennai',
-    status: 'published',
+    status: 'pending',
     isFlagged: false,
+    submittedBy: 'SAMPLE_USER_ID',
   },
 ];
