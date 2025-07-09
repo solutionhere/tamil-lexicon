@@ -6,77 +6,82 @@ import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut as fir
 import { auth } from '@/lib/firebase';
 import { ALL_ADMIN_UIDS, SUPERADMIN_UID } from '@/lib/admins';
 
-interface AuthContextType {
+// The core context only deals with the user object and loading state.
+interface CoreAuthContextType {
   user: User | null;
-  isAdmin: boolean;
-  isSuperAdmin: boolean;
-  loading: boolean; // For initial auth check
-  signInWithGoogle: () => Promise<void>; // Return a promise to allow chaining
+  loading: boolean;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const CoreAuthContext = createContext<CoreAuthContextType | undefined>(undefined);
 
+// The provider component that will wrap the application.
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Set up the listener for authentication state changes.
   useEffect(() => {
-    // This effect runs once on mount to set up the auth state listener.
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
-      if (user) {
-        const adminStatus = ALL_ADMIN_UIDS.includes(user.uid);
-        const superAdminStatus = user.uid === SUPERADMIN_UID;
-        setIsAdmin(adminStatus);
-        setIsSuperAdmin(superAdminStatus);
-      } else {
-        setIsAdmin(false);
-        setIsSuperAdmin(false);
-      }
       setLoading(false);
     });
-
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
+  // Stable sign-in function, wrapped in useCallback.
   const signInWithGoogle = useCallback(async () => {
     const provider = new GoogleAuthProvider();
-    // The promise will be handled by the component that calls this function.
-    // This avoids triggering state changes within the provider during the auth flow.
     await signInWithPopup(auth, provider);
   }, []);
 
+  // Stable sign-out function, wrapped in useCallback.
   const signOut = useCallback(() => {
     firebaseSignOut(auth).catch((error) => {
       console.error("Error signing out", error);
     });
   }, []);
 
-  // Memoize the context value to prevent unnecessary re-renders of consumers.
+  // Memoize the context value to prevent unnecessary re-renders.
+  // The value is stable because the functions are wrapped in useCallback.
   const value = useMemo(() => ({
       user,
-      isAdmin,
-      isSuperAdmin,
       loading,
       signInWithGoogle,
       signOut
-  }), [user, isAdmin, isSuperAdmin, loading, signInWithGoogle, signOut]);
+  }), [user, loading, signInWithGoogle, signOut]);
 
   return (
-    <AuthContext.Provider value={value}>
+    <CoreAuthContext.Provider value={value}>
       {children}
-    </AuthContext.Provider>
+    </CoreAuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
+// Custom hook that provides the full auth context, including derived admin status.
+interface FullAuthContextType extends CoreAuthContextType {
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+}
+
+export function useAuth(): FullAuthContextType {
+  const context = useContext(CoreAuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context;
+
+  const { user } = context;
+
+  // Derive admin status from the user object.
+  // useMemo ensures this is only recalculated when the user changes.
+  const isAdmin = useMemo(() => (user ? ALL_ADMIN_UIDS.includes(user.uid) : false), [user]);
+  const isSuperAdmin = useMemo(() => (user ? user.uid === SUPERADMIN_UID : false), [user]);
+  
+  // Return the original context values plus the derived admin statuses.
+  return {
+    ...context,
+    isAdmin,
+    isSuperAdmin,
+  };
 }
