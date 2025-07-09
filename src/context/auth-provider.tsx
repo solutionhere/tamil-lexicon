@@ -11,8 +11,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   loading: boolean; // For initial auth check
-  isSigningIn: boolean; // For the sign-in process
-  signInWithGoogle: () => void;
+  signInWithGoogle: () => Promise<void>; // Return a promise to allow chaining
   signOut: () => void;
 }
 
@@ -23,19 +22,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isSigningIn, setIsSigningIn] = useState(false);
 
   useEffect(() => {
-    console.log("Setting up onAuthStateChanged listener...");
+    // This effect runs once on mount to set up the auth state listener.
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("onAuthStateChanged triggered. User:", user ? user.uid : null);
       setUser(user);
       if (user) {
         const adminStatus = ALL_ADMIN_UIDS.includes(user.uid);
         const superAdminStatus = user.uid === SUPERADMIN_UID;
         setIsAdmin(adminStatus);
         setIsSuperAdmin(superAdminStatus);
-        console.log('Logged in User UID:', user.uid);
       } else {
         setIsAdmin(false);
         setIsSuperAdmin(false);
@@ -43,32 +39,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => {
-        console.log("Cleaning up onAuthStateChanged listener.");
-        unsubscribe();
-    };
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
-  const signInWithGoogle = useCallback(() => {
+  const signInWithGoogle = useCallback(async () => {
     const provider = new GoogleAuthProvider();
-    setIsSigningIn(true);
-    console.log("Starting signInWithPopup...");
-
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        console.log("signInWithPopup successful for user:", result.user.displayName);
-        // Success state is handled by the onAuthStateChanged listener.
-      })
-      .catch((error: any) => {
-        if (error.code !== 'auth/popup-closed-by-user') {
-          console.error("Error signing in with Google:", error);
-        } else {
-          console.log("Sign-in popup closed by user.");
-        }
-      })
-      .finally(() => {
-        setIsSigningIn(false);
-      });
+    // The promise will be handled by the component that calls this function.
+    // This avoids triggering state changes within the provider during the auth flow.
+    await signInWithPopup(auth, provider);
   }, []);
 
   const signOut = useCallback(() => {
@@ -77,16 +56,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const value = useMemo(() => ({ 
-      user, 
-      isAdmin, 
-      isSuperAdmin, 
-      loading, 
-      isSigningIn, 
-      signInWithGoogle, 
-      signOut 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [user, isAdmin, isSuperAdmin, loading, isSigningIn]);
+  // Memoize the context value to prevent unnecessary re-renders of consumers.
+  const value = useMemo(() => ({
+      user,
+      isAdmin,
+      isSuperAdmin,
+      loading,
+      signInWithGoogle,
+      signOut
+  }), [user, isAdmin, isSuperAdmin, loading, signInWithGoogle, signOut]);
 
   return (
     <AuthContext.Provider value={value}>
