@@ -4,7 +4,7 @@
 // This user has full control and can manage other admins.
 // To make yourself the superadmin, log in and find your UID in the browser console,
 // then replace the placeholder below.
-export const SUPERADMIN_UID = 'PLACEHOLDER_SUPERADMIN_UID';
+export const SUPERADMIN_UID = 'JnSqUQ50uWO7PYeCGNWdtcOScAH2';
 
 // These users have access to the standard admin dashboard.
 export const adminUids = [
