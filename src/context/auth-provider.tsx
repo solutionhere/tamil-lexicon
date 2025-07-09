@@ -13,7 +13,7 @@ interface AuthContextType {
   loading: boolean; // For initial auth check
   isSigningIn: boolean; // For the sign-in process
   signInWithGoogle: () => void;
-  signOut: () => Promise<void>;
+  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,13 +31,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("onAuthStateChanged triggered. User:", user ? user.uid : null);
       setUser(user);
       if (user) {
-        // Check if the logged-in user is an admin or superadmin
         const adminStatus = ALL_ADMIN_UIDS.includes(user.uid);
         const superAdminStatus = user.uid === SUPERADMIN_UID;
         setIsAdmin(adminStatus);
         setIsSuperAdmin(superAdminStatus);
-        
-        // You can find your UID by logging `user.uid` to the console
         console.log('Logged in User UID:', user.uid);
       } else {
         setIsAdmin(false);
@@ -53,15 +50,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(() => {
-    if (isSigningIn) return;
     const provider = new GoogleAuthProvider();
     setIsSigningIn(true);
     console.log("Starting signInWithPopup...");
 
     signInWithPopup(auth, provider)
       .then((result) => {
-        // Success is handled by onAuthStateChanged listener.
         console.log("signInWithPopup successful for user:", result.user.displayName);
+        // Success state is handled by the onAuthStateChanged listener.
       })
       .catch((error: any) => {
         if (error.code !== 'auth/popup-closed-by-user') {
@@ -71,17 +67,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .finally(() => {
-        // This will run regardless of success or failure.
         setIsSigningIn(false);
       });
-  }, [isSigningIn]);
+  }, []);
 
-  const signOut = useCallback(async () => {
-    try {
-      await firebaseSignOut(auth);
-    } catch (error) {
+  const signOut = useCallback(() => {
+    firebaseSignOut(auth).catch((error) => {
       console.error("Error signing out", error);
-    }
+    });
   }, []);
 
   const value = useMemo(() => ({ 
