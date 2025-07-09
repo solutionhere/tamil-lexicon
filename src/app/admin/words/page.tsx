@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import React, { useState, useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import Link from 'next/link';
 import { words, categories, locations } from '@/lib/data';
 import type { Word } from '@/lib/types';
@@ -46,9 +46,9 @@ function ActionButton({
 const WordActionCell = ({ word }: { word: Word }) => {
   const { toast } = useToast();
 
-  const [approveState, approveFormAction] = useFormState(approveWordAction, { message: '', success: false });
-  const [rejectState, rejectFormAction] = useFormState(rejectWordAction, { message: '', success: false });
-  const [deleteState, deleteFormAction] = useFormState(deleteWordAction, { message: '', success: false });
+  const [approveState, approveFormAction] = useActionState(approveWordAction, { message: '', success: false });
+  const [rejectState, rejectFormAction] = useActionState(rejectWordAction, { message: '', success: false });
+  const [deleteState, deleteFormAction] = useActionState(deleteWordAction, { message: '', success: false });
 
   // Effect to show toast messages for each action
   useEffect(() => {

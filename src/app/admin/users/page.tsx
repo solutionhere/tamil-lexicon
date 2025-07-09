@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { useAuth } from '@/context/auth-provider';
 import { useToast } from '@/hooks/use-toast';
 import { adminUids, SUPERADMIN_UID } from '@/lib/admins';
@@ -39,8 +39,8 @@ export default function ManageAdminsPage() {
     const { isSuperAdmin, loading } = useAuth();
     const { toast } = useToast();
 
-    const [addState, addFormAction] = useFormState(addAdminAction, { message: '', success: false });
-    const [removeState, removeFormAction] = useFormState(removeAdminAction, { message: '', success: false });
+    const [addState, addFormAction] = useActionState(addAdminAction, { message: '', success: false });
+    const [removeState, removeFormAction] = useActionState(removeAdminAction, { message: '', success: false });
     
     const addFormRef = React.useRef<HTMLFormElement>(null);
 
