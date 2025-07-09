@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { submissionSchema } from '@/lib/schemas';
 import { submitWord, suggestTransliteration, suggestTamilWord } from '@/app/submit/actions';
 import type { Category, Location } from '@/lib/types';
+import { useAuth } from '@/context/auth-provider';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -27,6 +28,7 @@ type FormData = z.infer<typeof submissionSchema>;
 
 export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isSuggestionPending, startSuggestionTransition] = useTransition();
   const [isTamilSuggestionPending, startTamilSuggestionTransition] = useTransition();
   const [isFormPending, startFormTransition] = useTransition();
@@ -70,6 +72,10 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
   const onSubmit = (data: FormData) => {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => formData.append(key, value as string));
+
+    if (user) {
+      formData.append('userId', user.uid);
+    }
 
     startFormTransition(async () => {
       const result = await submitWord({ success: false }, formData);
