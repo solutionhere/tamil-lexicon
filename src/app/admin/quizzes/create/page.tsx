@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ArrowLeft, Ban } from 'lucide-react';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { QuizCreationForm } from '@/components/quiz-creation-form';
+import { createQuizAction } from '../actions';
 
 export default function CreateQuizPage() {
     const { isAdmin, loading } = useAuth();
@@ -54,28 +56,20 @@ export default function CreateQuizPage() {
 
     return (
         <div className="min-h-screen bg-background">
-            <div className="container mx-auto max-w-2xl px-4 py-12">
+            <div className="container mx-auto max-w-3xl px-4 py-12">
                 <div className="mb-4">
-                <Button variant="ghost" asChild>
-                    <Link href="/admin/quizzes">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Quizzes
-                    </Link>
-                </Button>
+                    <Button variant="ghost" asChild>
+                        <Link href="/admin/quizzes">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Quizzes
+                        </Link>
+                    </Button>
                 </div>
-                <Card>
-                <CardHeader>
-                    <CardTitle>Create New Quiz</CardTitle>
-                    <CardDescription>
-                    This feature is under construction. In the future, you'll be able to build and schedule quizzes from this page.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                        <p className="text-muted-foreground">Quiz Creation Form Coming Soon!</p>
-                    </div>
-                </CardContent>
-                </Card>
+                 <div className="mb-8 text-center">
+                    <h1 className="font-headline text-4xl font-bold text-primary">Create a New Quiz</h1>
+                    <p className="mt-2 text-muted-foreground">Build a new quiz to challenge the community.</p>
+                </div>
+                <QuizCreationForm formAction={createQuizAction} />
             </div>
         </div>
     );
