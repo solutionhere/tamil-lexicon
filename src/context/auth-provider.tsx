@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { Skeleton } from '@/components/ui/skeleton';
 import { ALL_ADMIN_UIDS, SUPERADMIN_UID } from '@/lib/admins';
 
 interface AuthContextType {
@@ -48,23 +47,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    setLoading(true);
     try {
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      // This specific error occurs when the user closes the sign-in popup.
-      // It's a normal user action, so we can safely ignore it.
-      if (error.code === 'auth/popup-closed-by-user') {
-        return;
+      if (error.code !== 'auth/popup-closed-by-user') {
+        console.error("Error signing in with Google", error);
       }
-      console.error("Error signing in with Google", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
+    setLoading(true);
     try {
       await firebaseSignOut(auth);
     } catch (error) {
       console.error("Error signing out", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,13 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? (
-        <div className="flex h-screen items-center justify-center">
-          <Skeleton className="h-16 w-16 rounded-full" />
-        </div>
-      ) : (
-        children
-      )}
+      {children}
     </AuthContext.Provider>
   );
 }
