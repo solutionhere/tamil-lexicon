@@ -1,18 +1,131 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import Link from 'next/link';
 import { words, categories, locations } from '@/lib/data';
+import type { Word } from '@/lib/types';
+import { useAuth } from '@/context/auth-provider';
+import { useToast } from '@/hooks/use-toast';
+import { approveWordAction, rejectWordAction, deleteWordAction } from './actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, PlusCircle, Edit, Trash2, Ban, CheckCircle, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ArrowLeft, PlusCircle, Edit, Trash2, Ban, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
-const WordTable = ({ words, categories, locations }) => {
+// Button component with pending state for form actions
+function ActionButton({
+  icon: Icon,
+  text,
+  pendingText,
+  className = '',
+}: {
+  icon: React.ElementType;
+  text: string;
+  pendingText: string;
+  className?: string;
+}) {
+  const { pending } = useFormStatus();
+  return (
+    <Button variant="ghost" size="icon" type="submit" disabled={pending} title={text}>
+      {pending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Icon className={`h-4 w-4 ${className}`} />
+      )}
+      <span className="sr-only">{pending ? pendingText : text}</span>
+    </Button>
+  );
+}
+
+// Component to manage actions for a single word row, handling form state and toasts
+const WordActionCell = ({ word }: { word: Word }) => {
+  const { toast } = useToast();
+
+  const [approveState, approveFormAction] = useFormState(approveWordAction, { message: '', success: false });
+  const [rejectState, rejectFormAction] = useFormState(rejectWordAction, { message: '', success: false });
+  const [deleteState, deleteFormAction] = useFormState(deleteWordAction, { message: '', success: false });
+
+  // Effect to show toast messages for each action
+  useEffect(() => {
+    if (approveState.message) {
+      toast({
+        title: approveState.success ? 'Success' : 'Error',
+        description: approveState.message,
+        variant: approveState.success ? 'default' : 'destructive',
+      });
+    }
+  }, [approveState, toast]);
+
+  useEffect(() => {
+    if (rejectState.message) {
+      toast({
+        title: rejectState.success ? 'Success' : 'Error',
+        description: rejectState.message,
+        variant: rejectState.success ? 'default' : 'destructive',
+      });
+    }
+  }, [rejectState, toast]);
+
+  useEffect(() => {
+    if (deleteState.message) {
+      toast({
+        title: deleteState.success ? 'Success' : 'Error',
+        description: deleteState.message,
+        variant: deleteState.success ? 'default' : 'destructive',
+      });
+    }
+  }, [deleteState, toast]);
+
+  return (
+    <TableCell className="text-right">
+      <div className="flex items-center justify-end gap-1">
+        {word.status === 'pending' && (
+          <>
+            <form action={approveFormAction}>
+              <input type="hidden" name="wordId" value={word.id} />
+              <ActionButton
+                icon={CheckCircle}
+                text="Approve Word"
+                pendingText="Approving..."
+                className="text-green-600"
+              />
+            </form>
+            <form action={rejectFormAction}>
+              <input type="hidden" name="wordId" value={word.id} />
+              <ActionButton
+                icon={XCircle}
+                text="Reject Word"
+                pendingText="Rejecting..."
+                className="text-destructive"
+              />
+            </form>
+          </>
+        )}
+        <Button variant="ghost" size="icon" title="Edit (coming soon)" disabled>
+          <Edit className="h-4 w-4" />
+          <span className="sr-only">Edit Word</span>
+        </Button>
+        <form action={deleteFormAction}>
+          <input type="hidden" name="wordId" value={word.id} />
+          <ActionButton
+            icon={Trash2}
+            text="Delete Word"
+            pendingText="Deleting..."
+            className="text-destructive"
+          />
+        </form>
+      </div>
+    </TableCell>
+  );
+};
+
+
+const WordTable = ({ words, categories, locations }: { words: Word[], categories: any, locations: any }) => {
     if (words.length === 0) {
         return <p className="py-10 text-center text-muted-foreground">No words in this category.</p>;
     }
@@ -51,28 +164,7 @@ const WordTable = ({ words, categories, locations }) => {
                             {word.isFlagged ? 'Flagged' : word.status}
                         </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                        {word.status === 'pending' && (
-                            <>
-                            <Button variant="ghost" size="icon" title="Approve (coming soon)" disabled>
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                <span className="sr-only">Approve Word</span>
-                            </Button>
-                            <Button variant="ghost" size="icon" title="Reject (coming soon)" disabled>
-                                <XCircle className="h-4 w-4 text-destructive" />
-                                <span className="sr-only">Reject Word</span>
-                            </Button>
-                            </>
-                        )}
-                       <Button variant="ghost" size="icon" title="Edit (coming soon)" disabled>
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Edit Word</span>
-                        </Button>
-                        <Button variant="ghost" size="icon" title="Delete (coming soon)" disabled>
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Delete Word</span>
-                        </Button>
-                    </TableCell>
+                    <WordActionCell word={word} />
                 </TableRow>
                 );
             })}
@@ -165,6 +257,12 @@ export default function ManageWordsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+             <Alert className="mb-4">
+                <AlertTitle>Demonstration Only</AlertTitle>
+                <AlertDescription>
+                    Because the app uses static data, these actions only simulate database changes. The list will not update visually, but you will see success messages and console logs.
+                </AlertDescription>
+            </Alert>
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList>
                 <TabsTrigger value="all">All ({words.length})</TabsTrigger>
