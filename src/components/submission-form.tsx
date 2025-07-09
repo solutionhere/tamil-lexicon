@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 
 import { submissionSchema } from '@/lib/schemas';
-import { suggestTransliteration, suggestTamilWord } from '@/app/submit/actions';
+import { suggestTransliteration, suggestTamilWord } from '@/app/submit/ai-actions';
 import type { Category, Location, Word } from '@/lib/types';
 import { useAuth } from '@/context/auth-provider';
 

@@ -51,7 +51,3 @@ export async function submitWord(
     success: true,
   };
 }
-
-// NOTE: The AI-powered transliteration functions are not modified as they don't interact with the DB.
-// You could replace the rule-based ones with a Genkit flow for better accuracy.
-export { suggestTransliteration, suggestTamilWord } from './ai-actions';
