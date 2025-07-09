@@ -24,7 +24,7 @@ interface LexiconHeaderProps {
 }
 
 export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeaderProps) {
-    const { user, signInWithGoogle, signOut, loading } = useAuth();
+    const { user, isAdmin, signInWithGoogle, signOut, loading } = useAuth();
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
@@ -55,11 +55,13 @@ export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeade
                     <Puzzle className="h-5 w-5" />
                 </Link>
             </Button>
-            <Button asChild variant="ghost" size="icon" aria-label="Admin Panel">
-                <Link href="/admin">
-                    <Shield className="h-5 w-5" />
-                </Link>
-            </Button>
+            {isAdmin && (
+                <Button asChild variant="ghost" size="icon" aria-label="Admin Panel">
+                    <Link href="/admin">
+                        <Shield className="h-5 w-5" />
+                    </Link>
+                </Button>
+            )}
             {loading ? (
                 <Skeleton className="h-10 w-24 rounded-md" />
             ) : user ? (

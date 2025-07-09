@@ -6,8 +6,15 @@ import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut as fir
 import { auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// A simple list of admin User IDs.
+// In a production app, this would likely come from a database or custom claims.
+const ADMIN_USER_IDS = [
+    'PLACEHOLDER_ADMIN_UID' // I can replace this with your actual UID
+];
+
 interface AuthContextType {
   user: User | null;
+  isAdmin: boolean;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -17,11 +24,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      if (user) {
+        // Check if the logged-in user is an admin
+        const adminStatus = ADMIN_USER_IDS.includes(user.uid);
+        setIsAdmin(adminStatus);
+        // You can find your UID by logging `user.uid` to the console
+        console.log('Logged in User UID:', user.uid);
+      } else {
+        setIsAdmin(false);
+      }
       setLoading(false);
     });
 
@@ -45,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const value = { user, loading, signInWithGoogle, signOut };
+  const value = { user, isAdmin, loading, signInWithGoogle, signOut };
 
   return (
     <AuthContext.Provider value={value}>
