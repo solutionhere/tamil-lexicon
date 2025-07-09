@@ -8,23 +8,13 @@ import { useToast } from '@/hooks/use-toast';
 import { blogPostSchema, blogPostUpdateSchema } from '@/lib/schemas';
 import type { BlogPostFormState } from '@/app/admin/blog/actions';
 import type { BlogPost } from '@/lib/types';
+import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, CheckCircle } from 'lucide-react';
-
-function slugify(text: string) {
-    return text
-        .toString()
-        .toLowerCase()
-        .replace(/\s+/g, '-')       // Replace spaces with -
-        .replace(/[^\w-]+/g, '')   // Remove all non-word chars
-        .replace(/--+/g, '-')       // Replace multiple - with single -
-        .replace(/^-+/, '')          // Trim - from start of text
-        .replace(/-+$/, '');         // Trim - from end of text
-}
 
 interface BlogPostFormProps {
     formAction: (prevState: BlogPostFormState, formData: FormData) => Promise<BlogPostFormState>;

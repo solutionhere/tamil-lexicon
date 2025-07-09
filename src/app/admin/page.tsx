@@ -3,26 +3,28 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, ClipboardList, Ban, Users, BookMarked, Newspaper } from 'lucide-react';
+import { ArrowLeft, ClipboardList, Ban, Users, BookMarked, Newspaper, Tags, Globe } from 'lucide-react';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { collection, query, where, getCountFromServer } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-type WordCounts = {
+type AdminDashboardCounts = {
     published: number;
     pending: number;
     flagged: number;
+    categories: number;
+    locations: number;
 };
 
 export default function AdminPage() {
   const { isAdmin, isSuperAdmin, loading: authLoading } = useAuth();
-  const [counts, setCounts] = useState<WordCounts>({ published: 0, pending: 0, flagged: 0 });
+  const [counts, setCounts] = useState<AdminDashboardCounts>({ published: 0, pending: 0, flagged: 0, categories: 0, locations: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchWordCounts = async () => {
+    const fetchCounts = async () => {
         if (!isAdmin) {
             setLoading(false);
             return;
@@ -31,26 +33,32 @@ export default function AdminPage() {
             const publishedQuery = query(collection(db, 'words'), where('status', '==', 'published'), where('isFlagged', '==', false));
             const pendingQuery = query(collection(db, 'words'), where('status', '==', 'pending'));
             const flaggedQuery = query(collection(db, 'words'), where('isFlagged', '==', true));
+            const categoriesQuery = collection(db, 'categories');
+            const locationsQuery = collection(db, 'locations');
 
-            const [publishedSnap, pendingSnap, flaggedSnap] = await Promise.all([
+            const [publishedSnap, pendingSnap, flaggedSnap, categoriesSnap, locationsSnap] = await Promise.all([
                 getCountFromServer(publishedQuery),
                 getCountFromServer(pendingQuery),
                 getCountFromServer(flaggedQuery),
+                getCountFromServer(categoriesQuery),
+                getCountFromServer(locationsQuery)
             ]);
 
             setCounts({
                 published: publishedSnap.data().count,
                 pending: pendingSnap.data().count,
                 flagged: flaggedSnap.data().count,
+                categories: categoriesSnap.data().count,
+                locations: locationsSnap.data().count,
             });
         } catch (error) {
-            console.error("Error fetching word counts:", error);
+            console.error("Error fetching admin counts:", error);
         } finally {
             setLoading(false);
         }
     };
     if (!authLoading) {
-        fetchWordCounts();
+        fetchCounts();
     }
   }, [authLoading, isAdmin]);
 
@@ -64,7 +72,8 @@ export default function AdminPage() {
                     <Skeleton className="h-8 w-48" />
                     <Skeleton className="h-4 w-full max-w-md" />
                 </CardHeader>
-                <CardContent className="pt-6 grid gap-4 md:grid-cols-2">
+                <CardContent className="pt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <Skeleton className="h-48 w-full" />
                     <Skeleton className="h-48 w-full" />
                     <Skeleton className="h-48 w-full" />
                 </CardContent>
@@ -99,7 +108,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-4xl px-4 py-12">
+      <div className="container mx-auto max-w-6xl px-4 py-12">
         <div className="mb-4">
           <Button variant="ghost" asChild>
             <Link href="/">
@@ -138,6 +147,36 @@ export default function AdminPage() {
                     <Card className="flex flex-col">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
+                                <Tags className="h-5 w-5" />
+                                Manage Categories
+                            </CardTitle>
+                            <CardDescription>Add or remove word categories.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex-grow">
+                             <p className="text-sm text-muted-foreground">Total Categories: <span className="font-bold text-foreground">{counts.categories}</span></p>
+                        </CardContent>
+                        <CardFooter>
+                             <Button asChild><Link href="/admin/categories">Manage Categories</Link></Button>
+                        </CardFooter>
+                    </Card>
+                    <Card className="flex flex-col">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <Globe className="h-5 w-5" />
+                                Manage Locations
+                            </CardTitle>
+                            <CardDescription>Add or remove geographical regions.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex-grow">
+                              <p className="text-sm text-muted-foreground">Total Locations: <span className="font-bold text-foreground">{counts.locations}</span></p>
+                        </CardContent>
+                        <CardFooter>
+                             <Button asChild><Link href="/admin/locations">Manage Locations</Link></Button>
+                        </CardFooter>
+                    </Card>
+                    <Card className="flex flex-col">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-lg">
                                 <ClipboardList className="h-5 w-5" />
                                 Manage Quizzes
                             </CardTitle>
@@ -171,7 +210,7 @@ export default function AdminPage() {
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Users className="h-5 w-5" />
                                     Manage Admins
-                                </CardTitle>
+                                </Title>
                                 <CardDescription>Add or remove admin users.</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-grow">

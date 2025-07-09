@@ -45,3 +45,14 @@ export const blogPostSchema = z.object({
 export const blogPostUpdateSchema = blogPostSchema.extend({
     postId: z.string().min(1, 'Post ID is required.'),
 });
+
+
+// New schemas for taxonomy management
+export const categorySchema = z.object({
+  name: z.string().min(2, 'Category name must be at least 2 characters.'),
+});
+
+export const locationSchema = z.object({
+    name: z.string().min(2, 'Location name must be at least 2 characters.'),
+    parent: z.string().optional(),
+});
