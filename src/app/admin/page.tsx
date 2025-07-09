@@ -1,18 +1,19 @@
 'use client';
 
-import { words, categories, locations } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Edit, Shield, ClipboardList, Ban, Users } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, ClipboardList, Ban, Users, BookMarked } from 'lucide-react';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { words } from '@/lib/data';
 
 export default function AdminPage() {
   const { isAdmin, isSuperAdmin, loading } = useAuth();
-  const flaggedWords = words.filter(word => word.isFlagged);
+  const flaggedWordsCount = words.filter(word => word.isFlagged).length;
+  const pendingWordsCount = words.filter(word => word.status === 'pending').length;
+  const publishedWordsCount = words.filter(word => word.status === 'published' && !word.isFlagged).length;
+
 
   if (loading) {
     return (
@@ -81,16 +82,18 @@ export default function AdminPage() {
                     <Card className="flex flex-col">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
-                                <Shield className="h-5 w-5" />
-                                Flagged Words
+                                <BookMarked className="h-5 w-5" />
+                                Manage Words
                             </CardTitle>
-                            <CardDescription>Review words flagged by the community.</CardDescription>
+                            <CardDescription>Approve, edit, and add new lexicon entries.</CardDescription>
                         </CardHeader>
-                        <CardContent className="flex-grow">
-                            <p className="text-4xl font-bold">{flaggedWords.length}</p>
+                        <CardContent className="flex-grow space-y-2">
+                            <div className="text-sm text-muted-foreground">Published: <span className="font-bold text-foreground">{publishedWordsCount}</span></div>
+                            <div className="text-sm text-muted-foreground">Pending: <span className="font-bold text-foreground">{pendingWordsCount}</span></div>
+                            <div className="text-sm text-muted-foreground">Flagged: <span className="font-bold text-destructive">{flaggedWordsCount}</span></div>
                         </CardContent>
                         <CardFooter>
-                             <Button asChild><Link href="#flagged-words">View Flagged Words</Link></Button>
+                             <Button asChild><Link href="/admin/words">Manage Words</Link></Button>
                         </CardFooter>
                     </Card>
                     <Card className="flex flex-col">
@@ -126,58 +129,6 @@ export default function AdminPage() {
                         </Card>
                     )}
                 </CardContent>
-            </Card>
-
-            <Card id="flagged-words">
-            <CardHeader>
-                <CardTitle>Flagged Words for Review</CardTitle>
-                <CardDescription>
-                The following words have been flagged by the community for review.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                {flaggedWords.length > 0 ? (
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead>Tamil Word</TableHead>
-                        <TableHead>Transliteration</TableHead>
-                        <TableHead>Definition</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Region</TableHead>
-                        <TableHead><span className="sr-only">Actions</span></TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {flaggedWords.map(word => {
-                        const category = categories.find(c => c.id === word.category);
-                        const location = locations.find(l => l.id === word.location);
-                        return (
-                        <TableRow key={word.id}>
-                            <TableCell className="font-semibold">{word.tamil}</TableCell>
-                            <TableCell>{word.transliteration}</TableCell>
-                            <TableCell className="max-w-xs truncate">{word.definition}</TableCell>
-                            <TableCell>
-                            {category && <Badge variant="outline">{category.name}</Badge>}
-                            </TableCell>
-                             <TableCell>
-                              {location && <Badge variant="outline">{location.name}</Badge>}
-                            </TableCell>
-                            <TableCell>
-                               <Button variant="ghost" size="icon">
-                                    <Edit className="h-4 w-4" />
-                                    <span className="sr-only">Edit Word</span>
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                        );
-                    })}
-                    </TableBody>
-                </Table>
-                ) : (
-                <p className="text-center text-muted-foreground">No words have been flagged.</p>
-                )}
-            </CardContent>
             </Card>
         </div>
       </div>
