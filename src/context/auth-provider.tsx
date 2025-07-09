@@ -55,6 +55,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Error signing in with Google", error);
       }
     } finally {
+      // This block ensures loading is set to false even if the user closes the popup.
+      // A successful login will trigger onAuthStateChanged which also sets loading to false.
       setLoading(false);
     }
   };
