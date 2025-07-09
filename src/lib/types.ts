@@ -25,9 +25,9 @@ export type Word = {
   status: 'published' | 'pending';
   isFlagged?: boolean;
   submittedBy?: string; // User ID of the submitter
+  createdAt: any; // Firestore Timestamp
 };
 
-// New Types for Quiz feature
 export type QuizQuestion = {
     id: string;
     text: string;
@@ -50,15 +50,15 @@ export type QuizScore = {
     userId: string;
     userName: string;
     score: number;
+    createdAt: any; // Firestore Timestamp
 };
 
-// New Type for Blog feature
 export type BlogPost = {
   id: string;
   slug: string;
   title: string;
-  content: string; // For simplicity, we'll treat this as pre-formatted text.
-  publishedAt: string; // ISO date string
+  content: string;
+  publishedAt: string; // ISO date string, but from Firestore Timestamp
   author: {
     name: string;
     avatarUrl?: string;

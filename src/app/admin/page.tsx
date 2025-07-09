@@ -6,16 +6,51 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { ArrowLeft, ClipboardList, Ban, Users, BookMarked, Newspaper } from 'lucide-react';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
-import { words } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import { collection, query, where, getDocs,getCountFromServer } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
+type WordCounts = {
+    published: number;
+    pending: number;
+    flagged: number;
+};
 
 export default function AdminPage() {
-  const { isAdmin, isSuperAdmin, loading } = useAuth();
-  const flaggedWordsCount = words.filter(word => word.isFlagged).length;
-  const pendingWordsCount = words.filter(word => word.status === 'pending').length;
-  const publishedWordsCount = words.filter(word => word.status === 'published' && !word.isFlagged).length;
+  const { isAdmin, isSuperAdmin, loading: authLoading } = useAuth();
+  const [counts, setCounts] = useState<WordCounts>({ published: 0, pending: 0, flagged: 0 });
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchWordCounts = async () => {
+        try {
+            const publishedQuery = query(collection(db, 'words'), where('status', '==', 'published'), where('isFlagged', '==', false));
+            const pendingQuery = query(collection(db, 'words'), where('status', '==', 'pending'));
+            const flaggedQuery = query(collection(db, 'words'), where('isFlagged', '==', true));
 
-  if (loading) {
+            const [publishedSnap, pendingSnap, flaggedSnap] = await Promise.all([
+                getCountFromServer(publishedQuery),
+                getCountFromServer(pendingQuery),
+                getCountFromServer(flaggedQuery),
+            ]);
+
+            setCounts({
+                published: publishedSnap.data().count,
+                pending: pendingSnap.data().count,
+                flagged: flaggedSnap.data().count,
+            });
+        } catch (error) {
+            console.error("Error fetching word counts:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    if (!authLoading) {
+        fetchWordCounts();
+    }
+  }, [authLoading]);
+
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="container mx-auto max-w-4xl px-4 py-12">
@@ -88,9 +123,9 @@ export default function AdminPage() {
                             <CardDescription>Approve, edit, and add new lexicon entries.</CardDescription>
                         </CardHeader>
                         <CardContent className="flex-grow space-y-2">
-                            <div className="text-sm text-muted-foreground">Published: <span className="font-bold text-foreground">{publishedWordsCount}</span></div>
-                            <div className="text-sm text-muted-foreground">Pending: <span className="font-bold text-foreground">{pendingWordsCount}</span></div>
-                            <div className="text-sm text-muted-foreground">Flagged: <span className="font-bold text-destructive">{flaggedWordsCount}</span></div>
+                            <div className="text-sm text-muted-foreground">Published: <span className="font-bold text-foreground">{counts.published}</span></div>
+                            <div className="text-sm text-muted-foreground">Pending: <span className="font-bold text-foreground">{counts.pending}</span></div>
+                            <div className="text-sm text-muted-foreground">Flagged: <span className="font-bold text-destructive">{counts.flagged}</span></div>
                         </CardContent>
                         <CardFooter>
                              <Button asChild><Link href="/admin/words">Manage Words</Link></Button>

@@ -2,30 +2,41 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { blogPosts } from '@/lib/data';
 import { ArrowLeft, UserCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import type { BlogPost } from '@/lib/types';
 
-interface BlogPageProps {
-  params: {
-    slug: string;
-  };
+
+async function getPost(slug: string): Promise<BlogPost | null> {
+    const q = query(collection(db, 'blogPosts'), where('slug', '==', slug), limit(1));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return null;
+    }
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        publishedAt: data.publishedAt.toDate().toISOString(),
+    } as BlogPost;
 }
 
 export async function generateStaticParams() {
-  return blogPosts.map(post => ({
-    slug: post.slug,
+  const snapshot = await getDocs(collection(db, 'blogPosts'));
+  return snapshot.docs.map(doc => ({
+    slug: doc.data().slug,
   }));
 }
 
-export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
-  const post = blogPosts.find(p => p.slug === params.slug);
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const post = await getPost(params.slug);
 
   if (!post) {
-    return {
-      title: 'Post not found - Tamil Lexicon Blog',
-    };
+    return { title: 'Post not found - Tamil Lexicon Blog' };
   }
 
   return {
@@ -41,8 +52,8 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
   };
 }
 
-export default function BlogPostPage({ params }: BlogPageProps) {
-  const post = blogPosts.find(p => p.slug === params.slug);
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+  const post = await getPost(params.slug);
 
   if (!post) {
     notFound();

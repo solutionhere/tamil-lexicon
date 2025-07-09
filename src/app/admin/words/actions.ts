@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { wordUpdateSchema, submissionSchema } from '@/lib/schemas';
+import { db } from '@/lib/firebase';
+import { doc, updateDoc, deleteDoc, addDoc, collection } from 'firebase/firestore';
 
 type ActionState = {
   message: string;
@@ -15,10 +17,6 @@ export type WordFormState = {
   success: boolean;
 };
 
-// In a real app, these actions would interact with a database
-// to update the word's status. Here, we'll just log
-// the action to the console for demonstration purposes.
-
 export async function approveWordAction(
   prevState: ActionState,
   formData: FormData
@@ -27,18 +25,17 @@ export async function approveWordAction(
   const validation = z.string().min(1).safeParse(wordId);
 
   if (!validation.success) {
-    return {
-      message: 'Validation failed: Word ID cannot be empty.',
-      success: false,
-    };
+    return { message: 'Validation failed: Word ID cannot be empty.', success: false };
   }
 
-  console.log(`SIMULATION: Approving word with ID: ${wordId}`);
-  // In a real DB: await db.word.update({ where: { id: wordId }, data: { status: 'published' } });
-
-  revalidatePath('/admin/words');
-  revalidatePath('/');
-  return { message: `Successfully simulated approving word.`, success: true };
+  try {
+    await updateDoc(doc(db, 'words', wordId), { status: 'published' });
+    revalidatePath('/admin/words');
+    revalidatePath('/');
+    return { message: 'Successfully approved word.', success: true };
+  } catch (e) {
+    return { message: 'Database error.', success: false };
+  }
 }
 
 export async function rejectWordAction(
@@ -49,17 +46,16 @@ export async function rejectWordAction(
   const validation = z.string().min(1).safeParse(wordId);
 
   if (!validation.success) {
-    return {
-      message: 'Validation failed: Word ID cannot be empty.',
-      success: false,
-    };
+    return { message: 'Validation failed: Word ID cannot be empty.', success: false };
   }
 
-  console.log(`SIMULATION: Rejecting word with ID: ${wordId}`);
-  // In a real DB: await db.word.delete({ where: { id: wordId } });
-
-  revalidatePath('/admin/words');
-  return { message: `Successfully simulated rejecting word.`, success: true };
+  try {
+    await deleteDoc(doc(db, 'words', wordId));
+    revalidatePath('/admin/words');
+    return { message: 'Successfully rejected word.', success: true };
+  } catch (e) {
+    return { message: 'Database error.', success: false };
+  }
 }
 
 export async function deleteWordAction(
@@ -72,13 +68,15 @@ export async function deleteWordAction(
   if (!validation.success) {
     return { message: 'Validation failed: Word ID is missing.', success: false };
   }
-
-  console.log(`SIMULATION: Deleting word with ID: ${wordId}`);
-  // In a real DB: await db.word.delete({ where: { id: wordId } });
-
-  revalidatePath('/admin/words');
-  revalidatePath('/');
-  return { message: `Successfully simulated deleting word.`, success: true };
+  
+  try {
+    await deleteDoc(doc(db, 'words', wordId));
+    revalidatePath('/admin/words');
+    revalidatePath('/');
+    return { message: 'Successfully deleted word.', success: true };
+  } catch (e) {
+    return { message: 'Database error.', success: false };
+  }
 }
 
 export async function updateWordAction(
@@ -88,27 +86,27 @@ export async function updateWordAction(
   const validatedFields = wordUpdateSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.errors,
-      message: 'Validation failed. Please check the fields.',
-      success: false,
-    };
+    return { errors: validatedFields.error.errors, message: 'Validation failed.', success: false };
   }
   
-  const { wordId, ...wordData } = validatedFields.data;
+  const { wordId, exampleTamil, exampleEnglish, ...rest } = validatedFields.data;
 
-  // In a real app, you would save this to a database
-  console.log(`SIMULATION: Updating word with ID: ${wordId}`);
-  console.log('Updated data:', wordData);
-
-  revalidatePath('/admin/words');
-  revalidatePath('/');
-  revalidatePath(`/admin/words/${wordId}/edit`);
-
-  return {
-    message: `Successfully simulated updating "${wordData.transliteration}".`,
-    success: true,
-  };
+  try {
+    const wordData = {
+        ...rest,
+        example: {
+            tamil: exampleTamil,
+            english: exampleEnglish
+        },
+    };
+    await updateDoc(doc(db, 'words', wordId), wordData);
+    revalidatePath('/admin/words');
+    revalidatePath('/');
+    revalidatePath(`/admin/words/${wordId}/edit`);
+    return { message: `Successfully updated "${wordData.transliteration}".`, success: true };
+  } catch (e) {
+    return { message: 'Database error.', success: false };
+  }
 }
 
 export async function addWordAction(
@@ -118,22 +116,26 @@ export async function addWordAction(
   const validatedFields = submissionSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.errors,
-      message: 'Validation failed. Please check the fields.',
-      success: false,
-    };
+    return { errors: validatedFields.error.errors, message: 'Validation failed.', success: false };
   }
 
-  // In a real app, you would save this to a database with a 'published' status
-  console.log(`SIMULATION: Adding and publishing new word:`);
-  console.log({ ...validatedFields.data, status: 'published' });
-
-  revalidatePath('/admin/words');
-  revalidatePath('/');
-
-  return {
-    message: `Successfully simulated adding "${validatedFields.data.transliteration}".`,
-    success: true,
-  };
+  try {
+    const { exampleTamil, exampleEnglish, ...rest } = validatedFields.data;
+    const wordData = {
+        ...rest,
+        example: {
+            tamil: exampleTamil,
+            english: exampleEnglish
+        },
+        status: 'published',
+        isFlagged: false,
+        createdAt: new Date(),
+    };
+    await addDoc(collection(db, 'words'), wordData);
+    revalidatePath('/admin/words');
+    revalidatePath('/');
+    return { message: `Successfully added "${validatedFields.data.transliteration}".`, success: true };
+  } catch (e) {
+    return { message: 'Database error.', success: false };
+  }
 }

@@ -1,8 +1,9 @@
 "use server";
 
 import { z } from 'zod';
-import { transliterate, reverseTransliterate } from '@/lib/transliteration';
 import { submissionSchema } from '@/lib/schemas';
+import { db } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 export type SubmissionState = {
   message?: string;
@@ -23,9 +24,27 @@ export async function submitWord(
       success: false,
     };
   }
-
-  // In a real app, you would save this to a database with a 'pending' status.
-  console.log('New submission received:', validatedFields.data);
+  
+  try {
+    const { exampleTamil, exampleEnglish, ...rest } = validatedFields.data;
+    const wordData = {
+        ...rest,
+        example: {
+            tamil: exampleTamil,
+            english: exampleEnglish
+        },
+        status: 'pending',
+        isFlagged: false,
+        createdAt: new Date(),
+    };
+    await addDoc(collection(db, 'words'), wordData);
+  } catch (error) {
+    console.error("Error submitting word to Firestore:", error);
+    return {
+      message: 'An error occurred while submitting your word. Please try again.',
+      success: false,
+    };
+  }
 
   return {
     message: 'Thank you! Your suggestion has been submitted for review.',
@@ -33,18 +52,6 @@ export async function submitWord(
   };
 }
 
-export async function suggestTransliteration(tamilWord: string): Promise<{ transliteration: string }> {
-    if (!tamilWord) return { transliteration: '' };
-    
-    const transliteration = transliterate(tamilWord);
-    
-    return { transliteration };
-}
-
-export async function suggestTamilWord(englishWord: string): Promise<{ tamilWord: string }> {
-    if (!englishWord) return { tamilWord: '' };
-
-    const tamilWord = reverseTransliterate(englishWord);
-
-    return { tamilWord };
-}
+// NOTE: The AI-powered transliteration functions are not modified as they don't interact with the DB.
+// You could replace the rule-based ones with a Genkit flow for better accuracy.
+export { suggestTransliteration, suggestTamilWord } from './ai-actions';

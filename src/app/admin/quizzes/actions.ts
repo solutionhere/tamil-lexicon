@@ -3,6 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { quizCreationSchema, quizUpdateSchema } from '@/lib/schemas';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+
 
 export type QuizCreationData = z.infer<typeof quizCreationSchema>;
 export type QuizUpdateData = z.infer<typeof quizUpdateSchema>;
@@ -16,30 +19,22 @@ export type QuizFormState = {
   success: boolean;
 };
 
-// In a real app, this would save the quiz to a database.
 export async function createQuizAction(
   data: QuizCreationData
 ): Promise<QuizFormState> {
   const validatedFields = quizCreationSchema.safeParse(data);
 
   if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Validation failed. Please check the fields.',
-      success: false,
-    };
+    return { errors: validatedFields.error.flatten().fieldErrors, message: 'Validation failed.', success: false };
   }
   
-  // In a real app, you would save this to a database with a 'draft' status
-  console.log(`SIMULATION: Creating new quiz with title: "${validatedFields.data.title}"`);
-  console.log({ ...validatedFields.data, id: `quiz-${Date.now()}`, status: 'draft' });
-
-  revalidatePath('/admin/quizzes');
-  
-  return {
-    message: `Successfully simulated creating quiz: "${validatedFields.data.title}".`,
-    success: true,
-  };
+  try {
+    await addDoc(collection(db, 'quizzes'), { ...validatedFields.data, status: 'draft' });
+    revalidatePath('/admin/quizzes');
+    return { message: `Successfully created quiz: "${validatedFields.data.title}".`, success: true };
+  } catch (error) {
+    return { message: 'Database error.', success: false };
+  }
 }
 
 
@@ -49,26 +44,19 @@ export async function updateQuizAction(
   const validatedFields = quizUpdateSchema.safeParse(data);
 
   if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Validation failed. Please check the fields.',
-      success: false,
-    };
+    return { errors: validatedFields.error.flatten().fieldErrors, message: 'Validation failed.', success: false };
   }
   
   const { quizId, ...quizData } = validatedFields.data;
 
-  // In a real app, you would save this to a database
-  console.log(`SIMULATION: Updating quiz with ID: ${quizId}`);
-  console.log('Updated data:', quizData);
-
-  revalidatePath('/admin/quizzes');
-  revalidatePath(`/admin/quizzes/${quizId}/edit`);
-  
-  return {
-    message: `Successfully simulated updating quiz: "${quizData.title}".`,
-    success: true,
-  };
+  try {
+    await updateDoc(doc(db, 'quizzes', quizId), quizData);
+    revalidatePath('/admin/quizzes');
+    revalidatePath(`/admin/quizzes/${quizId}/edit`);
+    return { message: `Successfully updated quiz: "${quizData.title}".`, success: true };
+  } catch (error) {
+    return { message: 'Database error.', success: false };
+  }
 }
 
 type ActionState = {
@@ -84,18 +72,14 @@ export async function deleteQuizAction(
   const validation = z.string().min(1).safeParse(quizId);
 
   if (!validation.success) {
-    return {
-      message: 'Validation failed: Quiz ID cannot be empty.',
-      success: false,
-    };
+    return { message: 'Validation failed: Quiz ID cannot be empty.', success: false };
   }
 
-  console.log(`SIMULATION: Deleting quiz with ID: ${quizId}`);
-  
-  revalidatePath('/admin/quizzes');
-  
-  return {
-    message: 'Successfully simulated deleting quiz.',
-    success: true,
-  };
+  try {
+    await deleteDoc(doc(db, 'quizzes', quizId));
+    revalidatePath('/admin/quizzes');
+    return { message: 'Successfully deleted quiz.', success: true };
+  } catch (error) {
+    return { message: 'Database error.', success: false };
+  }
 }

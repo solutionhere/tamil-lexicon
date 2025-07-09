@@ -1,29 +1,48 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-provider';
-import { words, categories } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Edit } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getUserContributions } from './actions';
+import type { Word, Category } from '@/lib/types';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
+async function getCategories(): Promise<Category[]> {
+    const snapshot = await getDocs(collection(db, 'categories'));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Category[];
+}
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const [contributions, setContributions] = useState<Word[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // In a real application with a database, you would fetch contributions for the logged-in user.
-  // For this demo, we filter the static data using a placeholder ID to demonstrate the UI.
-  // To test this with your own account after submitting a word, you would need to
-  // add your Firebase User ID to a word in the `src/lib/data.ts` file.
-  const userContributions = words.filter(
-    // In a real app, you'd use: word.submittedBy === user?.uid
-    (word) => word.submittedBy === 'SAMPLE_USER_ID'
-  );
+  useEffect(() => {
+    async function fetchData() {
+        if (user) {
+            const [userContributions, fetchedCategories] = await Promise.all([
+                getUserContributions(user.uid),
+                getCategories()
+            ]);
+            setContributions(userContributions);
+            setCategories(fetchedCategories);
+        }
+        setLoading(false);
+    }
+    if (!authLoading) {
+        fetchData();
+    }
+  }, [user, authLoading]);
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
         <div className="container mx-auto max-w-4xl px-4 py-12">
             <Skeleton className="h-8 w-36 mb-4" />
@@ -33,7 +52,7 @@ export default function DashboardPage() {
                     <Skeleton className="h-4 w-full max-w-md" />
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-4 pt-4">
                         <Skeleton className="h-12 w-full" />
                         <Skeleton className="h-12 w-full" />
                         <Skeleton className="h-12 w-full" />
@@ -83,7 +102,7 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {userContributions.length > 0 ? (
+            {contributions.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -95,7 +114,7 @@ export default function DashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {userContributions.map((word) => {
+                  {contributions.map((word) => {
                     const category = categories.find((c) => c.id === word.category);
                     return (
                       <TableRow key={word.id}>

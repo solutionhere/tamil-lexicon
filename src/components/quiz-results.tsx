@@ -1,13 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { QuizScore, User } from '@/lib/types';
-import { quizScores } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trophy, Award } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { collection, query, where, orderBy, limit, getDocs, addDoc } from 'firebase/firestore';
+
 
 interface QuizResultsProps {
   score: number;
@@ -18,18 +20,36 @@ interface QuizResultsProps {
 
 export function QuizResults({ score, totalQuestions, quizId, user }: QuizResultsProps) {
     const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+    const [leaderboard, setLeaderboard] = useState<QuizScore[]>([]);
     
-    const currentUserScore: QuizScore = {
-        id: 'current_user',
-        quizId,
-        userId: user.uid,
-        userName: user.displayName ?? 'You',
-        score,
-    };
-    
-    const leaderboard = [currentUserScore, ...quizScores.filter(s => s.quizId === quizId)]
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10);
+    useEffect(() => {
+      const processScore = async () => {
+        // Save the current user's score
+        const newScore: Omit<QuizScore, 'id'> = {
+          quizId,
+          userId: user.uid,
+          userName: user.displayName ?? 'Anonymous',
+          score,
+          createdAt: new Date(),
+        };
+        await addDoc(collection(db, 'quizScores'), newScore);
+
+        // Fetch top 10 scores
+        const q = query(
+            collection(db, 'quizScores'),
+            where('quizId', '==', quizId),
+            orderBy('score', 'desc'),
+            orderBy('createdAt', 'asc'),
+            limit(10)
+        );
+        const snapshot = await getDocs(q);
+        const scores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as QuizScore);
+        setLeaderboard(scores);
+      };
+
+      processScore();
+    }, [quizId, score, user]);
+
 
     return (
         <Card className="w-full">
@@ -45,16 +65,10 @@ export function QuizResults({ score, totalQuestions, quizId, user }: QuizResults
                     <h3 className="mb-4 text-center text-xl font-semibold">Top 10 Scorers</h3>
                     <div className="rounded-md border">
                         <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[50px]">Rank</TableHead>
-                                    <TableHead>Player</TableHead>
-                                    <TableHead className="text-right">Score</TableHead>
-                                </TableRow>
-                            </TableHeader>
+                            <TableHeader><TableRow><TableHead className="w-[50px]">Rank</TableHead><TableHead>Player</TableHead><TableHead className="text-right">Score</TableHead></TableRow></TableHeader>
                             <TableBody>
                                 {leaderboard.map((entry, index) => (
-                                    <TableRow key={entry.id} className={entry.id === 'current_user' ? 'bg-primary/10' : ''}>
+                                    <TableRow key={entry.id} className={entry.userId === user.uid ? 'bg-primary/10' : ''}>
                                         <TableCell className="font-bold text-lg flex items-center justify-center">
                                             {index === 0 ? <Award className="h-6 w-6 text-yellow-500" /> :
                                             index === 1 ? <Award className="h-6 w-6 text-slate-400" /> :
@@ -69,11 +83,7 @@ export function QuizResults({ score, totalQuestions, quizId, user }: QuizResults
                         </Table>
                     </div>
                 </div>
-                 <div className="text-center">
-                    <Button asChild>
-                        <Link href="/">Back to Lexicon</Link>
-                    </Button>
-                </div>
+                 <div className="text-center"><Button asChild><Link href="/">Back to Lexicon</Link></Button></div>
             </CardContent>
         </Card>
     );

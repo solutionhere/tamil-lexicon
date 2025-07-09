@@ -1,11 +1,26 @@
 import { WordForm } from '@/components/submission-form';
-import { categories, locations } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { submitWord } from './actions';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import type { Category, Location } from '@/lib/types';
 
-export default function SubmitPage() {
+
+async function getFormData() {
+  const categoriesSnapshot = await getDocs(collection(db, 'categories'));
+  const locationsSnapshot = await getDocs(collection(db, 'locations'));
+
+  const categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Category[];
+  const locations = locationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Location[];
+  
+  return { categories, locations };
+}
+
+
+export default async function SubmitPage() {
+  const { categories, locations } = await getFormData();
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto max-w-2xl px-4 py-12">

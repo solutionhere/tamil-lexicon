@@ -1,12 +1,28 @@
 import Link from 'next/link';
-import { blogPosts } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import type { BlogPost } from '@/lib/types';
+import { db } from '@/lib/firebase';
+import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 
-export default function BlogPage() {
-  const sortedPosts = blogPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+
+async function getBlogPosts(): Promise<BlogPost[]> {
+    const q = query(collection(db, 'blogPosts'), orderBy('publishedAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          publishedAt: data.publishedAt.toDate().toISOString(),
+        } as BlogPost;
+    });
+}
+
+export default async function BlogPage() {
+  const posts = await getBlogPosts();
 
   return (
     <div className="min-h-screen bg-background">
@@ -25,7 +41,7 @@ export default function BlogPage() {
         </div>
 
         <div className="space-y-8">
-            {sortedPosts.map(post => (
+            {posts.map(post => (
                 <Card key={post.id} className="flex flex-col">
                     <CardHeader>
                         <Link href={`/blog/${post.slug}`} className="group">

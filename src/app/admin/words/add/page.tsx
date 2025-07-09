@@ -1,59 +1,24 @@
-'use client';
-
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Ban } from 'lucide-react';
-import { useAuth } from '@/context/auth-provider';
-import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowLeft } from 'lucide-react';
 import { WordForm } from '@/components/submission-form';
-import { categories, locations } from '@/lib/data';
+import type { Category, Location } from '@/lib/types';
 import { addWordAction } from '../actions';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
-export default function AddWordPage() {
-    const { isAdmin, loading } = useAuth();
+async function getFormData() {
+    const categoriesSnapshot = await getDocs(collection(db, 'categories'));
+    const locationsSnapshot = await getDocs(collection(db, 'locations'));
 
-    if (loading) {
-        return (
-          <div className="min-h-screen bg-background flex items-center justify-center">
-            <div className="container mx-auto max-w-2xl px-4 py-12">
-                <Skeleton className="h-10 w-36 mb-8" />
-                <Card>
-                    <CardHeader>
-                        <Skeleton className="h-8 w-48" />
-                        <Skeleton className="h-4 w-full max-w-md" />
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                        <Skeleton className="h-48 w-full" />
-                    </CardContent>
-                </Card>
-            </div>
-          </div>
-        );
-    }
+    const categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Category[];
+    const locations = locationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Location[];
     
-    if (!isAdmin) {
-        return (
-          <div className="min-h-screen bg-background flex items-center justify-center">
-            <div className="container mx-auto max-w-md px-4 py-12 text-center">
-                <Card>
-                    <CardHeader className="items-center">
-                        <div className="mx-auto bg-destructive/10 p-3 rounded-full w-fit mb-2">
-                            <Ban className="h-8 w-8 text-destructive" />
-                        </div>
-                        <CardTitle>Access Denied</CardTitle>
-                        <CardDescription>You do not have permission to view this page.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button asChild>
-                            <Link href="/">Back to Lexicon</Link>
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
-          </div>
-        );
-    }
+    return { categories, locations };
+}
+
+export default async function AddWordPage() {
+    const { categories, locations } = await getFormData();
 
     return (
         <div className="min-h-screen bg-background">

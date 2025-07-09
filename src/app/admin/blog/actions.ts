@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { blogPostSchema, blogPostUpdateSchema } from '@/lib/schemas';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 export type BlogPostFormState = {
   message?: string;
@@ -10,7 +12,6 @@ export type BlogPostFormState = {
   success: boolean;
 };
 
-// In a real app, this would save the post to a database.
 export async function createPostAction(
   prevState: BlogPostFormState,
   formData: FormData
@@ -18,23 +19,21 @@ export async function createPostAction(
   const validatedFields = blogPostSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.errors,
-      message: 'Validation failed. Please check the fields.',
-      success: false,
-    };
+    return { errors: validatedFields.error.errors, message: 'Validation failed.', success: false };
   }
 
-  console.log(`SIMULATION: Creating new blog post with title: "${validatedFields.data.title}"`);
-  console.log({ ...validatedFields.data, id: `post-${Date.now()}`, publishedAt: new Date().toISOString() });
-
-  revalidatePath('/admin/blog');
-  revalidatePath('/blog');
-  
-  return {
-    message: `Successfully simulated creating post: "${validatedFields.data.title}".`,
-    success: true,
-  };
+  try {
+    const postData = {
+        ...validatedFields.data,
+        publishedAt: new Date(),
+    };
+    await addDoc(collection(db, 'blogPosts'), postData);
+    revalidatePath('/admin/blog');
+    revalidatePath('/blog');
+    return { message: `Successfully created post: "${validatedFields.data.title}".`, success: true };
+  } catch (error) {
+    return { message: 'Database error.', success: false };
+  }
 }
 
 export async function updatePostAction(
@@ -44,25 +43,19 @@ export async function updatePostAction(
   const validatedFields = blogPostUpdateSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.errors,
-      message: 'Validation failed. Please check the fields.',
-      success: false,
-    };
+    return { errors: validatedFields.error.errors, message: 'Validation failed.', success: false };
   }
 
   const { postId, ...postData } = validatedFields.data;
 
-  console.log(`SIMULATION: Updating blog post with ID: "${postId}"`);
-  console.log(postData);
-
-  revalidatePath('/admin/blog');
-  revalidatePath(`/blog/${postData.slug}`);
-  
-  return {
-    message: `Successfully simulated updating post: "${postData.title}".`,
-    success: true,
-  };
+  try {
+    await updateDoc(doc(db, 'blogPosts', postId), postData);
+    revalidatePath('/admin/blog');
+    revalidatePath(`/blog/${postData.slug}`);
+    return { message: `Successfully updated post: "${postData.title}".`, success: true };
+  } catch (error) {
+    return { message: 'Database error.', success: false };
+  }
 }
 
 export async function deletePostAction(
@@ -73,19 +66,15 @@ export async function deletePostAction(
   const validation = z.string().min(1).safeParse(postId);
 
   if (!validation.success) {
-    return {
-      message: 'Validation failed: Post ID cannot be empty.',
-      success: false,
-    };
+    return { message: 'Validation failed: Post ID cannot be empty.', success: false };
   }
 
-  console.log(`SIMULATION: Deleting post with ID: ${postId}`);
-
-  revalidatePath('/admin/blog');
-  revalidatePath('/blog');
-  
-  return {
-    message: `Successfully simulated deleting post.`,
-    success: true,
-  };
+  try {
+    await deleteDoc(doc(db, 'blogPosts', postId));
+    revalidatePath('/admin/blog');
+    revalidatePath('/blog');
+    return { message: 'Successfully deleted post.', success: true };
+  } catch (error) {
+    return { message: 'Database error.', success: false };
+  }
 }

@@ -1,22 +1,60 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { WordForm } from '@/components/submission-form';
-import { categories, locations, words } from '@/lib/data';
+import type { Category, Location, Word } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { updateWordAction } from '../../actions';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+
+async function getEditData(id: string) {
+    const wordRef = doc(db, 'words', id);
+    const categoriesQuery = collection(db, 'categories');
+    const locationsQuery = collection(db, 'locations');
+
+    const [wordDoc, categoriesSnapshot, locationsSnapshot] = await Promise.all([
+        getDoc(wordRef),
+        getDocs(categoriesQuery),
+        getDocs(locationsQuery),
+    ]);
+
+    const word = wordDoc.exists() ? { id: wordDoc.id, ...wordDoc.data() } as Word : null;
+    const categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Category[];
+    const locations = locationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Location[];
+
+    return { word, categories, locations };
+}
 
 export default function EditWordPage({ params }: { params: { id: string } }) {
-  // In newer Next.js versions, params can be a promise. `React.use()` is the correct way to unwrap it.
-  const resolvedParams = React.use(params);
-  const word = words.find(w => w.id === resolvedParams.id);
+  const [data, setData] = useState<{ word: Word | null; categories: Category[]; locations: Location[] } | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!word) {
+  useEffect(() => {
+    getEditData(params.id).then(fetchedData => {
+        setData(fetchedData);
+        setLoading(false);
+    });
+  }, [params.id]);
+
+  if (loading) {
+      return (
+        <div className="container mx-auto max-w-2xl px-4 py-12">
+            <Skeleton className="h-10 w-48 mb-8" />
+            <Skeleton className="h-96 w-full" />
+        </div>
+      );
+  }
+  
+  if (!data || !data.word) {
     notFound();
   }
+  
+  const { word, categories, locations } = data;
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,7 +75,7 @@ export default function EditWordPage({ params }: { params: { id: string } }) {
           categories={categories}
           locations={locations}
           formAction={updateWordAction}
-          initialData={word}
+          initialData={{...word, tamilWord: word.tamil, exampleTamil: word.example.tamil, exampleEnglish: word.example.english }}
           submitButtonText="Update Word"
         />
       </div>

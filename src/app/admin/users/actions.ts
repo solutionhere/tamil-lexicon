@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { db } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 type ActionState = {
   message: string;
@@ -9,10 +11,6 @@ type ActionState = {
 };
 
 const uidSchema = z.string().min(1, 'User ID cannot be empty.');
-
-// In a real app, these actions would interact with a database
-// to add or remove a user's admin role. Here, we'll just log
-// the action to the console for demonstration purposes.
 
 export async function addAdminAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const uid = formData.get("uid") as string;
@@ -22,11 +20,13 @@ export async function addAdminAction(prevState: ActionState, formData: FormData)
     return { message: "Validation failed: User ID cannot be empty.", success: false };
   }
 
-  console.log(`SIMULATION: Adding admin with UID: ${uid}`);
-  // In a real DB: await db.user.update({ where: { id: uid }, data: { role: 'admin' } });
-
-  revalidatePath('/admin/users');
-  return { message: `Successfully simulated adding admin: ${uid}.`, success: true };
+  try {
+    await setDoc(doc(db, "users", uid), { role: "admin" }, { merge: true });
+    revalidatePath('/admin/users');
+    return { message: `Successfully added admin: ${uid}.`, success: true };
+  } catch (e) {
+    return { message: "Database error.", success: false };
+  }
 }
 
 export async function removeAdminAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -36,10 +36,13 @@ export async function removeAdminAction(prevState: ActionState, formData: FormDa
   if (!validation.success) {
     return { message: "Validation failed: User ID is missing.", success: false };
   }
-
-  console.log(`SIMULATION: Removing admin with UID: ${uid}`);
-  // In a real DB: await db.user.update({ where: { id: uid }, data: { role: 'user' } });
-
-  revalidatePath('/admin/users');
-  return { message: `Successfully simulated removing admin: ${uid}.`, success: true };
+  
+  try {
+    // Setting role to 'user' instead of deleting, to preserve other potential user data
+    await setDoc(doc(db, "users", uid), { role: "user" }, { merge: true });
+    revalidatePath('/admin/users');
+    return { message: `Successfully removed admin role from: ${uid}.`, success: true };
+  } catch(e) {
+    return { message: "Database error.", success: false };
+  }
 }
