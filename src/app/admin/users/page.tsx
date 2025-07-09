@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import React from 'react';
-import { useActionState, useFormStatus } from 'react-dom';
+import React, { useActionState, useEffect, useRef } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useAuth } from '@/context/auth-provider';
 import { useToast } from '@/hooks/use-toast';
 import { adminUids, SUPERADMIN_UID } from '@/lib/admins';
@@ -42,9 +42,9 @@ export default function ManageAdminsPage() {
     const [addState, addFormAction] = useActionState(addAdminAction, { message: '', success: false });
     const [removeState, removeFormAction] = useActionState(removeAdminAction, { message: '', success: false });
     
-    const addFormRef = React.useRef<HTMLFormElement>(null);
+    const addFormRef = useRef<HTMLFormElement>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (addState.message) {
             toast({
                 title: addState.success ? 'Success' : 'Error',
@@ -57,7 +57,7 @@ export default function ManageAdminsPage() {
         }
     }, [addState, toast]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (removeState.message) {
             toast({
                 title: removeState.success ? 'Success' : 'Error',
