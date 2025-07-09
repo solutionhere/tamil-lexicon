@@ -2,12 +2,13 @@
 
 import React, { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
+import Link from 'next/link';
 import type { Word, Category, Location } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Volume2, BookOpen, MapPin, Flag, Loader2, AlertCircle } from 'lucide-react';
+import { Volume2, BookOpen, MapPin, Flag, Loader2, AlertCircle, Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { flagWordAction } from '@/app/words/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -70,6 +71,15 @@ export function WordDetail({ word, categories, locations }: WordDetailProps) {
   const category = categories.find(c => c.id === word.category);
   const location = locations.find(l => l.id === word.location);
 
+  const handleShare = () => {
+    const url = `${window.location.origin}/word/${word.transliteration}`;
+    navigator.clipboard.writeText(url);
+    toast({
+      title: 'Link Copied!',
+      description: 'The link to this word has been copied to your clipboard.',
+    });
+  };
+
   return (
     <ScrollArea className="h-full bg-card">
       <div className="p-6 lg:p-8">
@@ -86,12 +96,20 @@ export function WordDetail({ word, categories, locations }: WordDetailProps) {
           <CardHeader className="px-0">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <CardTitle className="font-headline text-4xl text-primary">{word.tamil}</CardTitle>
+                <Link href={`/word/${word.transliteration}`} className="group">
+                  <CardTitle className="font-headline text-4xl text-primary group-hover:underline">
+                    {word.tamil}
+                  </CardTitle>
+                </Link>
                 <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 {category && <Badge variant="secondary">{category.name}</Badge>}
                 {location && <Badge variant="secondary" className="flex items-center gap-1"><MapPin size={14} /> {location.name}</Badge>}
+                 <Button variant="ghost" size="icon" onClick={handleShare} title="Copy link">
+                    <LinkIcon className="h-4 w-4" />
+                    <span className="sr-only">Copy link</span>
+                </Button>
               </div>
             </div>
           </CardHeader>
