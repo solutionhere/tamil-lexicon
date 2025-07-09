@@ -2,13 +2,18 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { wordUpdateSchema } from '@/lib/schemas';
 
 type ActionState = {
   message: string;
   success: boolean;
 };
 
-const wordIdSchema = z.string().min(1, 'Word ID cannot be empty.');
+export type WordFormState = {
+  message?: string;
+  errors?: z.ZodIssue[];
+  success: boolean;
+};
 
 // In a real app, these actions would interact with a database
 // to update the word's status. Here, we'll just log
@@ -19,7 +24,7 @@ export async function approveWordAction(
   formData: FormData
 ): Promise<ActionState> {
   const wordId = formData.get('wordId') as string;
-  const validation = wordIdSchema.safeParse(wordId);
+  const validation = z.string().min(1).safeParse(wordId);
 
   if (!validation.success) {
     return {
@@ -41,7 +46,7 @@ export async function rejectWordAction(
   formData: FormData
 ): Promise<ActionState> {
   const wordId = formData.get('wordId') as string;
-  const validation = wordIdSchema.safeParse(wordId);
+  const validation = z.string().min(1).safeParse(wordId);
 
   if (!validation.success) {
     return {
@@ -62,7 +67,7 @@ export async function deleteWordAction(
   formData: FormData
 ): Promise<ActionState> {
   const wordId = formData.get('wordId') as string;
-  const validation = wordIdSchema.safeParse(wordId);
+  const validation = z.string().min(1).safeParse(wordId);
 
   if (!validation.success) {
     return { message: 'Validation failed: Word ID is missing.', success: false };
@@ -74,4 +79,34 @@ export async function deleteWordAction(
   revalidatePath('/admin/words');
   revalidatePath('/');
   return { message: `Successfully simulated deleting word.`, success: true };
+}
+
+export async function updateWordAction(
+  prevState: WordFormState,
+  formData: FormData
+): Promise<WordFormState> {
+  const validatedFields = wordUpdateSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.errors,
+      message: 'Validation failed. Please check the fields.',
+      success: false,
+    };
+  }
+  
+  const { wordId, ...wordData } = validatedFields.data;
+
+  // In a real app, you would save this to a database
+  console.log(`SIMULATION: Updating word with ID: ${wordId}`);
+  console.log('Updated data:', wordData);
+
+  revalidatePath('/admin/words');
+  revalidatePath('/');
+  revalidatePath(`/admin/words/${wordId}/edit`);
+
+  return {
+    message: `Successfully simulated updating "${wordData.transliteration}".`,
+    success: true,
+  };
 }

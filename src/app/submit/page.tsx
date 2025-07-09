@@ -1,8 +1,9 @@
-import { SubmissionForm } from '@/components/submission-form';
+import { WordForm } from '@/components/submission-form';
 import { categories, locations } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { submitWord } from './actions';
 
 export default function SubmitPage() {
   return (
@@ -20,7 +21,12 @@ export default function SubmitPage() {
             <h1 className="font-headline text-4xl font-bold text-primary">Suggest a New Word</h1>
             <p className="mt-2 text-muted-foreground">Help us grow the lexicon! Your suggestions will be reviewed by our team.</p>
         </div>
-        <SubmissionForm categories={categories} locations={locations} />
+        <WordForm 
+            categories={categories} 
+            locations={locations} 
+            formAction={submitWord}
+            submitButtonText="Submit for Review"
+        />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import React, { useState, useEffect } from 'react';
+import { useActionState, useFormStatus } from 'react-dom';
 import Link from 'next/link';
 import { words, categories, locations } from '@/lib/data';
 import type { Word } from '@/lib/types';
@@ -106,9 +106,11 @@ const WordActionCell = ({ word }: { word: Word }) => {
             </form>
           </>
         )}
-        <Button variant="ghost" size="icon" title="Edit (coming soon)" disabled>
-          <Edit className="h-4 w-4" />
-          <span className="sr-only">Edit Word</span>
+        <Button variant="ghost" size="icon" asChild title="Edit Word">
+            <Link href={`/admin/words/${word.id}/edit`}>
+              <Edit className="h-4 w-4" />
+              <span className="sr-only">Edit Word</span>
+            </Link>
         </Button>
         <form action={deleteFormAction}>
           <input type="hidden" name="wordId" value={word.id} />

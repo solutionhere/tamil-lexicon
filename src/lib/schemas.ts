@@ -10,3 +10,7 @@ export const submissionSchema = z.object({
   location: z.string().min(1, 'Please select a location.'),
   userId: z.string().optional(),
 });
+
+export const wordUpdateSchema = submissionSchema.extend({
+  wordId: z.string().min(1, 'Word ID is required.'),
+});

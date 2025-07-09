@@ -3,11 +3,11 @@
 import React, { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { submissionSchema } from '@/lib/schemas';
-import { submitWord, suggestTransliteration, suggestTamilWord } from '@/app/submit/actions';
-import type { Category, Location } from '@/lib/types';
+import { suggestTransliteration, suggestTamilWord } from '@/app/submit/actions';
+import type { Category, Location, Word } from '@/lib/types';
 import { useAuth } from '@/context/auth-provider';
 
 import { Button } from '@/components/ui/button';
@@ -19,14 +19,23 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Wand2, Loader2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface SubmissionFormProps {
+interface WordFormProps {
   categories: Category[];
   locations: Location[];
+  formAction: (prevState: any, formData: FormData) => Promise<{ message?: string; errors?: z.ZodIssue[]; success: boolean; }>;
+  initialData?: Partial<Word & { tamilWord?: string; exampleTamil?: string; exampleEnglish?: string; }>;
+  submitButtonText?: string;
 }
 
 type FormData = z.infer<typeof submissionSchema>;
 
-export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
+export function WordForm({
+  categories,
+  locations,
+  formAction,
+  initialData = {},
+  submitButtonText = "Submit",
+}: WordFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSuggestionPending, startSuggestionTransition] = useTransition();
@@ -36,13 +45,13 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
   const form = useForm<FormData>({
     resolver: zodResolver(submissionSchema),
     defaultValues: {
-      tamilWord: '',
-      transliteration: '',
-      definition: '',
-      exampleTamil: '',
-      exampleEnglish: '',
-      category: '',
-      location: '',
+      tamilWord: initialData?.tamil || '',
+      transliteration: initialData?.transliteration || '',
+      definition: initialData?.definition || '',
+      exampleTamil: initialData?.example?.tamil || '',
+      exampleEnglish: initialData?.example?.english || '',
+      category: initialData?.category || '',
+      location: initialData?.location || '',
     },
   });
 
@@ -73,19 +82,25 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => formData.append(key, value as string));
 
-    if (user) {
+    if (user && !initialData.id) {
       formData.append('userId', user.uid);
+    }
+    
+    if (initialData.id) {
+        formData.append('wordId', initialData.id);
     }
 
     startFormTransition(async () => {
-      const result = await submitWord({ success: false }, formData);
+      const result = await formAction({ success: false }, formData);
       if (result.success) {
         toast({
           title: "Success!",
           description: result.message,
           action: <CheckCircle className="text-green-500" />,
         });
-        form.reset();
+        if (!initialData.id) { // Only reset form on creation
+            form.reset();
+        }
       } else {
         toast({
           title: "Error submitting form",
@@ -193,7 +208,7 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
                       </FormControl>
@@ -211,7 +226,7 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Region / Location</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger><SelectValue placeholder="Select a region" /></SelectTrigger>
                       </FormControl>
@@ -228,7 +243,7 @@ export function SubmissionForm({ categories, locations }: SubmissionFormProps) {
           <CardFooter>
             <Button type="submit" className="w-full" disabled={isFormPending}>
               {isFormPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Submit for Review
+              {submitButtonText}
             </Button>
           </CardFooter>
         </form>
