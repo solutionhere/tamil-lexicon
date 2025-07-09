@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { PlusCircle, Search, Shield, LogOut, LogIn, LayoutDashboard } from 'lucide-react';
+import { PlusCircle, Search, Shield, LogOut, LogIn, LayoutDashboard, Puzzle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -43,56 +43,63 @@ export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeade
               aria-label="Search words"
             />
         </div>
-        <Button asChild variant="secondary">
-          <Link href="/submit">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Suggest
-          </Link>
-        </Button>
-        <Button asChild variant="ghost" size="icon" aria-label="Admin Panel">
-            <Link href="/admin">
-                <Shield className="h-5 w-5" />
+        <div className="flex items-center gap-2">
+            <Button asChild variant="secondary" className="hidden sm:flex">
+            <Link href="/submit">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Suggest
             </Link>
-        </Button>
-         {loading ? (
-            <Skeleton className="h-10 w-24 rounded-md" />
-         ) : user ? (
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
-                            <AvatarFallback>{user.displayName?.charAt(0)?.toUpperCase() ?? 'U'}</AvatarFallback>
-                        </Avatar>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                        <div className="flex flex-col space-y-1">
-                            <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                        </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                        <Link href="/dashboard">
-                            <LayoutDashboard className="mr-2 h-4 w-4" />
-                            <span>My Contributions</span>
-                        </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => signOut()}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        ) : (
-            <Button onClick={() => signInWithGoogle()}>
-              <LogIn className="mr-2 h-4 w-4" />
-              Login
             </Button>
-        )}
+            <Button asChild variant="ghost" size="icon" aria-label="Take a Quiz">
+                <Link href="/quiz">
+                    <Puzzle className="h-5 w-5" />
+                </Link>
+            </Button>
+            <Button asChild variant="ghost" size="icon" aria-label="Admin Panel">
+                <Link href="/admin">
+                    <Shield className="h-5 w-5" />
+                </Link>
+            </Button>
+            {loading ? (
+                <Skeleton className="h-10 w-24 rounded-md" />
+            ) : user ? (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
+                                <AvatarFallback>{user.displayName?.charAt(0)?.toUpperCase() ?? 'U'}</AvatarFallback>
+                            </Avatar>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                        <DropdownMenuLabel className="font-normal">
+                            <div className="flex flex-col space-y-1">
+                                <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                            </div>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard">
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                <span>My Contributions</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => signOut()}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : (
+                <Button onClick={() => signInWithGoogle()}>
+                <LogIn className="mr-2 h-4 w-4" />
+                Login
+                </Button>
+            )}
+        </div>
     </header>
   );
 }
