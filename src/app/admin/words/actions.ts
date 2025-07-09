@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { wordUpdateSchema } from '@/lib/schemas';
+import { wordUpdateSchema, submissionSchema } from '@/lib/schemas';
 
 type ActionState = {
   message: string;
@@ -107,6 +107,33 @@ export async function updateWordAction(
 
   return {
     message: `Successfully simulated updating "${wordData.transliteration}".`,
+    success: true,
+  };
+}
+
+export async function addWordAction(
+  prevState: WordFormState,
+  formData: FormData
+): Promise<WordFormState> {
+  const validatedFields = submissionSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.errors,
+      message: 'Validation failed. Please check the fields.',
+      success: false,
+    };
+  }
+
+  // In a real app, you would save this to a database with a 'published' status
+  console.log(`SIMULATION: Adding and publishing new word:`);
+  console.log({ ...validatedFields.data, status: 'published' });
+
+  revalidatePath('/admin/words');
+  revalidatePath('/');
+
+  return {
+    message: `Successfully simulated adding "${validatedFields.data.transliteration}".`,
     success: true,
   };
 }

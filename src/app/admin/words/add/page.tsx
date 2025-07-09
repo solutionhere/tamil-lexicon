@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ArrowLeft, Ban } from 'lucide-react';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { WordForm } from '@/components/submission-form';
+import { categories, locations } from '@/lib/data';
+import { addWordAction } from '../actions';
 
 export default function AddWordPage() {
     const { isAdmin, loading } = useAuth();
@@ -55,27 +58,24 @@ export default function AddWordPage() {
     return (
         <div className="min-h-screen bg-background">
             <div className="container mx-auto max-w-2xl px-4 py-12">
-                <div className="mb-4">
-                <Button variant="ghost" asChild>
-                    <Link href="/admin/words">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Manage Words
-                    </Link>
-                </Button>
+                <div className="mb-2">
+                    <Button variant="ghost" asChild>
+                        <Link href="/admin/words">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Manage Words
+                        </Link>
+                    </Button>
                 </div>
-                <Card>
-                <CardHeader>
-                    <CardTitle>Add New Word</CardTitle>
-                    <CardDescription>
-                    This feature is under construction. In the future, you'll be able to add words directly to the lexicon from here.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                        <p className="text-muted-foreground">Word Creation Form Coming Soon!</p>
-                    </div>
-                </CardContent>
-                </Card>
+                <div className="mb-8 text-center">
+                    <h1 className="font-headline text-4xl font-bold text-primary">Add a New Word</h1>
+                    <p className="mt-2 text-muted-foreground">Directly add a new word to the lexicon. It will be published immediately.</p>
+                </div>
+                <WordForm
+                  categories={categories}
+                  locations={locations}
+                  formAction={addWordAction}
+                  submitButtonText="Add and Publish Word"
+                />
             </div>
         </div>
     );
