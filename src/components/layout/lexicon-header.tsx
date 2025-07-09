@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { PlusCircle, Search, Shield, LogOut, LogIn, LayoutDashboard, Puzzle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,20 +27,18 @@ export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeade
     const { user, isAdmin, signInWithGoogle, signOut, loading } = useAuth();
     const [isSigningIn, setIsSigningIn] = useState(false);
 
-    const handleSignIn = async () => {
+    const handleSignIn = useCallback(async () => {
         setIsSigningIn(true);
         try {
             await signInWithGoogle();
-            // onAuthStateChanged in the provider will handle the user state update.
         } catch (error: any) {
-            // We only want to log real errors, not the user closing the popup.
             if (error.code !== 'auth/popup-closed-by-user') {
                 console.error("Error signing in with Google:", error);
             }
         } finally {
             setIsSigningIn(false);
         }
-    };
+    }, [signInWithGoogle]);
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
