@@ -5,11 +5,55 @@ import { blogPosts } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Edit, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useActionState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
+import { useToast } from '@/hooks/use-toast';
+import { deletePostAction } from './actions';
+
+function DeleteButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button variant="ghost" size="icon" type="submit" disabled={pending} title="Delete Post">
+      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+      <span className="sr-only">Delete Post</span>
+    </Button>
+  );
+}
+
+const PostActionCell = ({ postId }: { postId: string }) => {
+  const { toast } = useToast();
+  const [state, formAction] = useActionState(deletePostAction, { success: false });
+
+  useEffect(() => {
+    if (state.message) {
+      toast({
+        title: state.success ? 'Success' : 'Error',
+        description: state.message,
+        variant: state.success ? 'default' : 'destructive',
+      });
+    }
+  }, [state, toast]);
+
+  return (
+    <div className="flex items-center justify-end gap-1">
+      <Button variant="ghost" size="icon" asChild title="Edit Post">
+        <Link href={`/admin/blog/${postId}/edit`}>
+          <Edit className="h-4 w-4" />
+          <span className="sr-only">Edit Post</span>
+        </Link>
+      </Button>
+      <form action={formAction}>
+        <input type="hidden" name="postId" value={postId} />
+        <DeleteButton />
+      </form>
+    </div>
+  );
+};
+
 
 export default function AdminBlogPage() {
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto max-w-4xl px-4 py-12">
@@ -52,14 +96,7 @@ export default function AdminBlogPage() {
                         <TableCell className="font-mono text-muted-foreground">/blog/{post.slug}</TableCell>
                         <TableCell>{format(new Date(post.publishedAt), 'MMM d, yyyy')}</TableCell>
                         <TableCell className="text-right">
-                           <Button variant="ghost" size="icon" disabled>
-                                <Edit className="h-4 w-4" />
-                                <span className="sr-only">Edit Post (coming soon)</span>
-                            </Button>
-                            <Button variant="ghost" size="icon" disabled>
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Delete Post (coming soon)</span>
-                            </Button>
+                           <PostActionCell postId={post.id} />
                         </TableCell>
                       </TableRow>
                   ))}

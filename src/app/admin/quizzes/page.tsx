@@ -1,14 +1,58 @@
 'use client';
 
+import React, { useActionState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
 import { quizzes } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, PlusCircle, Edit, Trash2, Ban } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Edit, Trash2, Ban, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { deleteQuizAction } from './actions';
+
+function DeleteButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button variant="ghost" size="icon" type="submit" disabled={pending} title="Delete Quiz">
+      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+      <span className="sr-only">Delete Quiz</span>
+    </Button>
+  );
+}
+
+const QuizActionCell = ({ quizId }: { quizId: string }) => {
+  const { toast } = useToast();
+  const [state, formAction] = useActionState(deleteQuizAction, { success: false });
+
+  useEffect(() => {
+    if (state.message) {
+      toast({
+        title: state.success ? 'Success' : 'Error',
+        description: state.message,
+        variant: state.success ? 'default' : 'destructive',
+      });
+    }
+  }, [state, toast]);
+
+  return (
+    <div className="flex items-center justify-end gap-1">
+      <Button variant="ghost" size="icon" asChild title="Edit Quiz">
+        <Link href={`/admin/quizzes/${quizId}/edit`}>
+          <Edit className="h-4 w-4" />
+          <span className="sr-only">Edit Quiz</span>
+        </Link>
+      </Button>
+      <form action={formAction}>
+        <input type="hidden" name="quizId" value={quizId} />
+        <DeleteButton />
+      </form>
+    </div>
+  );
+};
 
 export default function AdminQuizzesPage() {
   const { isAdmin, loading } = useAuth();
@@ -104,14 +148,7 @@ export default function AdminQuizzesPage() {
                             </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                           <Button variant="ghost" size="icon" disabled>
-                                <Edit className="h-4 w-4" />
-                                <span className="sr-only">Edit Quiz (coming soon)</span>
-                            </Button>
-                            <Button variant="ghost" size="icon" disabled>
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Delete Quiz (coming soon)</span>
-                            </Button>
+                           <QuizActionCell quizId={quiz.id} />
                         </TableCell>
                       </TableRow>
                   ))}

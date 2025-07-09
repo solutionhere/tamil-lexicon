@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 import { quizCreationSchema } from '@/lib/schemas';
 import type { QuizFormState, QuizCreationData } from '@/app/admin/quizzes/actions';
+import type { Quiz } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,6 +19,8 @@ import { Loader2, PlusCircle, Trash2, CheckCircle } from 'lucide-react';
 
 interface QuizCreationFormProps {
   formAction: (data: QuizCreationData) => Promise<QuizFormState>;
+  initialData?: Quiz;
+  submitButtonText?: string;
 }
 
 type FormData = z.infer<typeof quizCreationSchema>;
@@ -29,15 +32,16 @@ const defaultQuestion = {
     timeLimitSeconds: 15
 };
 
-export function QuizCreationForm({ formAction }: QuizCreationFormProps) {
+export function QuizCreationForm({ formAction, initialData, submitButtonText = "Create Quiz" }: QuizCreationFormProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const isEditMode = !!initialData;
 
   const form = useForm<FormData>({
     resolver: zodResolver(quizCreationSchema),
     defaultValues: {
-      title: '',
-      questions: [defaultQuestion],
+      title: initialData?.title || '',
+      questions: initialData?.questions.length ? initialData.questions : [defaultQuestion],
     },
   });
 
@@ -55,9 +59,10 @@ export function QuizCreationForm({ formAction }: QuizCreationFormProps) {
           description: result.message,
           action: <CheckCircle className="text-green-500" />,
         });
-        form.reset();
-        // Reset field array to one default question
-        form.setValue('questions', [defaultQuestion]);
+        if (!isEditMode) {
+          form.reset();
+          form.setValue('questions', [defaultQuestion]);
+        }
       } else {
         toast({
           title: "Error submitting form",
@@ -124,29 +129,36 @@ export function QuizCreationForm({ formAction }: QuizCreationFormProps) {
 
               <div className="space-y-4">
                  <Label>Answer Options & Correct Answer</Label>
-                 <RadioGroup 
-                    onValueChange={(value) => form.setValue(`questions.${index}.correctAnswerIndex`, parseInt(value, 10))} 
-                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                  >
-                   {[0, 1, 2, 3].map((optionIndex) => (
-                      <FormField
-                          key={optionIndex}
-                          control={form.control}
-                          name={`questions.${index}.options.${optionIndex}`}
-                          render={({ field }) => (
-                              <FormItem className="flex items-center gap-2 space-y-0">
-                                  <FormControl>
-                                    <div className="flex items-center gap-2">
-                                      <RadioGroupItem value={String(optionIndex)} id={`q${index}-o${optionIndex}`} />
-                                      <Label htmlFor={`q${index}-o${optionIndex}`} className="sr-only">Set option {optionIndex+1} as correct</Label>
-                                      <Input placeholder={`Option ${optionIndex + 1}`} {...field} />
-                                    </div>
-                                  </FormControl>
-                              </FormItem>
-                          )}
-                      />
-                   ))}
-                  </RadioGroup>
+                 <Controller
+                    control={form.control}
+                    name={`questions.${index}.correctAnswerIndex`}
+                    render={({ field }) => (
+                         <RadioGroup 
+                            onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                            value={String(field.value)}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                          >
+                           {[0, 1, 2, 3].map((optionIndex) => (
+                              <FormField
+                                  key={optionIndex}
+                                  control={form.control}
+                                  name={`questions.${index}.options.${optionIndex}`}
+                                  render={({ field: optionField }) => (
+                                      <FormItem className="flex items-center gap-2 space-y-0">
+                                          <FormControl>
+                                            <div className="flex items-center gap-2">
+                                              <RadioGroupItem value={String(optionIndex)} id={`q${index}-o${optionIndex}`} />
+                                              <Label htmlFor={`q${index}-o${optionIndex}`} className="sr-only">Set option {optionIndex+1} as correct</Label>
+                                              <Input placeholder={`Option ${optionIndex + 1}`} {...optionField} />
+                                            </div>
+                                          </FormControl>
+                                      </FormItem>
+                                  )}
+                              />
+                           ))}
+                          </RadioGroup>
+                    )}
+                  />
                   <FormMessage>{form.formState.errors.questions?.[index]?.correctAnswerIndex?.message}</FormMessage>
               </div>
 
@@ -157,7 +169,7 @@ export function QuizCreationForm({ formAction }: QuizCreationFormProps) {
                   <FormItem>
                     <FormLabel>Time Limit (seconds)</FormLabel>
                     <FormControl>
-                      <Input type="number" min="5" max="60" {...field} />
+                      <Input type="number" min="5" max="60" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -174,7 +186,7 @@ export function QuizCreationForm({ formAction }: QuizCreationFormProps) {
             </Button>
             <Button type="submit" disabled={isPending} className="w-full md:w-auto">
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Quiz
+                {submitButtonText}
             </Button>
         </div>
       </form>
