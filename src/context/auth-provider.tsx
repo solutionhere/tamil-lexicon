@@ -85,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isSigningIn, 
       signInWithGoogle, 
       signOut 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [user, isAdmin, isSuperAdmin, loading, isSigningIn]);
 
   return (
