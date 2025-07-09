@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const signInWithGoogle = () => {
+  const signInWithGoogle = useCallback(() => {
     if (isSigningIn) return;
     const provider = new GoogleAuthProvider();
     setIsSigningIn(true);
@@ -74,17 +74,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // This will run regardless of success or failure.
         setIsSigningIn(false);
       });
-  };
+  }, [isSigningIn]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
       await firebaseSignOut(auth);
     } catch (error) {
       console.error("Error signing out", error);
     }
-  };
+  }, []);
 
-  const value = { user, isAdmin, isSuperAdmin, loading, isSigningIn, signInWithGoogle, signOut };
+  const value = useMemo(() => ({ 
+      user, 
+      isAdmin, 
+      isSuperAdmin, 
+      loading, 
+      isSigningIn, 
+      signInWithGoogle, 
+      signOut 
+  }), [user, isAdmin, isSuperAdmin, loading, isSigningIn, signInWithGoogle, signOut]);
 
   return (
     <AuthContext.Provider value={value}>
