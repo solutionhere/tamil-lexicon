@@ -14,7 +14,7 @@ interface CoreAuthContextType {
   loading: boolean;
   role: Role | null;
   signInWithGoogle: () => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
 
 const CoreAuthContext = createContext<CoreAuthContextType | undefined>(undefined);
@@ -55,10 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Stable sign-out function, wrapped in useCallback.
-  const signOut = useCallback(() => {
-    firebaseSignOut(auth).catch((error) => {
+  const signOut = useCallback(async () => {
+    try {
+      await firebaseSignOut(auth);
+    } catch (error) {
       console.error("Error signing out", error);
-    });
+    }
   }, []);
 
   const value = useMemo(() => ({

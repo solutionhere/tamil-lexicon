@@ -74,7 +74,7 @@ export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeade
                     <Newspaper className="h-5 w-5" />
                 </Link>
             </Button>
-            {isAdmin && (
+            {!loading && isAdmin && (
                 <Button asChild variant="ghost" size="icon" aria-label="Admin Panel">
                     <Link href="/admin">
                         <Shield className="h-5 w-5" />
@@ -108,7 +108,7 @@ export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeade
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => signOut()}>
+                        <DropdownMenuItem onClick={signOut}>
                             <LogOut className="mr-2 h-4 w-4" />
                             <span>Log out</span>
                         </DropdownMenuItem>
