@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { PlusCircle, Search, Shield, LogOut, LogIn, LayoutDashboard, Puzzle } from 'lucide-react';
+import { PlusCircle, Search, Shield, LogOut, LogIn, LayoutDashboard, Puzzle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -24,7 +24,7 @@ interface LexiconHeaderProps {
 }
 
 export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeaderProps) {
-    const { user, isAdmin, signInWithGoogle, signOut, loading } = useAuth();
+    const { user, isAdmin, signInWithGoogle, signOut, loading, isSigningIn } = useAuth();
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
@@ -63,7 +63,7 @@ export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeade
                 </Button>
             )}
             {loading ? (
-                <Skeleton className="h-10 w-24 rounded-md" />
+                <Skeleton className="h-10 w-10 rounded-full" />
             ) : user ? (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -96,9 +96,13 @@ export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeade
                     </DropdownMenuContent>
                 </DropdownMenu>
             ) : (
-                <Button onClick={() => signInWithGoogle()}>
-                <LogIn className="mr-2 h-4 w-4" />
-                Login
+                <Button onClick={() => signInWithGoogle()} disabled={isSigningIn}>
+                  {isSigningIn ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                      <LogIn className="mr-2 h-4 w-4" />
+                  )}
+                  {isSigningIn ? 'Logging in...' : 'Login'}
                 </Button>
             )}
         </div>

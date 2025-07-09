@@ -10,7 +10,8 @@ interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   isSuperAdmin: boolean;
-  loading: boolean;
+  loading: boolean; // For initial auth check
+  isSigningIn: boolean; // For the sign-in process
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -22,9 +23,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   useEffect(() => {
+    console.log("Setting up onAuthStateChanged listener...");
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("onAuthStateChanged triggered. User:", user ? user.uid : null);
       setUser(user);
       if (user) {
         // Check if the logged-in user is an admin or superadmin
@@ -42,22 +46,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+        console.log("Cleaning up onAuthStateChanged listener.");
+        unsubscribe();
+    };
   }, []);
 
   const signInWithGoogle = async () => {
+    if (isSigningIn) return;
     const provider = new GoogleAuthProvider();
-    setLoading(true);
+    setIsSigningIn(true);
     try {
+      console.log("Starting signInWithPopup...");
       await signInWithPopup(auth, provider);
+      console.log("signInWithPopup successful. Waiting for onAuthStateChanged.");
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
-        console.error("Error signing in with Google", error);
+        console.error("Error signing in with Google:", error);
+      } else {
+        console.log("Sign-in popup closed by user.");
       }
     } finally {
-      // This block ensures loading is set to false even if the user closes the popup.
-      // A successful login will trigger onAuthStateChanged which also sets loading to false.
-      setLoading(false);
+      setIsSigningIn(false);
     }
   };
 
@@ -68,11 +78,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Error signing out", error);
     } finally {
-      setLoading(false);
+      // onAuthStateChanged will set loading to false
     }
   };
 
-  const value = { user, isAdmin, isSuperAdmin, loading, signInWithGoogle, signOut };
+  const value = { user, isAdmin, isSuperAdmin, loading, isSigningIn, signInWithGoogle, signOut };
 
   return (
     <AuthContext.Provider value={value}>
