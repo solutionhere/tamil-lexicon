@@ -100,7 +100,7 @@ export default function AdminLayout({
   
     return (
         <SidebarProvider>
-            <Sidebar variant="sidebar" collapsible="offcanvas" className="bg-card">
+            <Sidebar variant="sidebar" collapsible="none" className="bg-card">
                 <AdminNav />
             </Sidebar>
             <div className="flex flex-col flex-1">
