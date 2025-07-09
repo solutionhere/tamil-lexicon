@@ -5,16 +5,12 @@ import type { User } from 'firebase/auth';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-
-// A simple list of admin User IDs.
-// In a production app, this would likely come from a database or custom claims.
-const ADMIN_USER_IDS = [
-    'PLACEHOLDER_ADMIN_UID' // I can replace this with your actual UID
-];
+import { ALL_ADMIN_UIDS, SUPERADMIN_UID } from '@/lib/admins';
 
 interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -25,19 +21,24 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (user) {
-        // Check if the logged-in user is an admin
-        const adminStatus = ADMIN_USER_IDS.includes(user.uid);
+        // Check if the logged-in user is an admin or superadmin
+        const adminStatus = ALL_ADMIN_UIDS.includes(user.uid);
+        const superAdminStatus = user.uid === SUPERADMIN_UID;
         setIsAdmin(adminStatus);
+        setIsSuperAdmin(superAdminStatus);
+        
         // You can find your UID by logging `user.uid` to the console
         console.log('Logged in User UID:', user.uid);
       } else {
         setIsAdmin(false);
+        setIsSuperAdmin(false);
       }
       setLoading(false);
     });
@@ -62,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const value = { user, isAdmin, loading, signInWithGoogle, signOut };
+  const value = { user, isAdmin, isSuperAdmin, loading, signInWithGoogle, signOut };
 
   return (
     <AuthContext.Provider value={value}>

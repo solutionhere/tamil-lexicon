@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Edit, Shield, ClipboardList, Ban } from 'lucide-react';
+import { ArrowLeft, Edit, Shield, ClipboardList, Ban, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminPage() {
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, isSuperAdmin, loading } = useAuth();
   const flaggedWords = words.filter(word => word.isFlagged);
 
   if (loading) {
@@ -108,6 +108,23 @@ export default function AdminPage() {
                              <Button asChild><Link href="/admin/quizzes">Manage Quizzes</Link></Button>
                         </CardFooter>
                     </Card>
+                     {isSuperAdmin && (
+                        <Card className="flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <Users className="h-5 w-5" />
+                                    Manage Admins
+                                </CardTitle>
+                                <CardDescription>Add or remove admin users.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-grow">
+                                 <p className="text-muted-foreground">Control who has access to this dashboard.</p>
+                            </CardContent>
+                            <CardFooter>
+                                 <Button asChild><Link href="/admin/users">Manage Admins</Link></Button>
+                            </CardFooter>
+                        </Card>
+                    )}
                 </CardContent>
             </Card>
 
