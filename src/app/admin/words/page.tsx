@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, PlusCircle, Edit, Trash2, Ban, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Edit, Trash2, Ban, CheckCircle, XCircle, Loader2, Eye } from 'lucide-react';
 
 // Button component with pending state for form actions
 function ActionButton({
@@ -84,6 +84,12 @@ const WordActionCell = ({ word }: { word: Word }) => {
   return (
     <TableCell className="text-right">
       <div className="flex items-center justify-end gap-1">
+        <Button variant="ghost" size="icon" asChild title="View Word Page" >
+            <Link href={`/word/${word.transliteration}`} target="_blank">
+              <Eye className="h-4 w-4" />
+              <span className="sr-only">View Word</span>
+            </Link>
+        </Button>
         {word.status === 'pending' && (
           <>
             <form action={approveFormAction}>
