@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { WordForm } from '@/components/submission-form';
@@ -9,7 +10,9 @@ import { ArrowLeft } from 'lucide-react';
 import { updateWordAction } from '../../actions';
 
 export default function EditWordPage({ params }: { params: { id: string } }) {
-  const word = words.find(w => w.id === params.id);
+  // In newer Next.js versions, params can be a promise. `React.use()` is the correct way to unwrap it.
+  const resolvedParams = React.use(params);
+  const word = words.find(w => w.id === resolvedParams.id);
 
   if (!word) {
     notFound();
