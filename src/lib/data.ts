@@ -1,4 +1,4 @@
-import type { Category, Location, Word, Quiz, QuizScore } from '@/lib/types';
+import type { Category, Location, Word, Quiz, QuizScore, BlogPost } from '@/lib/types';
 
 export const categories: Category[] = [
   { id: 'college', name: 'College Slang', icon: 'GraduationCap' },
@@ -145,4 +145,27 @@ export const quizScores: QuizScore[] = [
     { id: 's10', quizId: 'quiz-1', userId: 'user10', userName: 'Rani', score: 3 },
     { id: 's11', quizId: 'quiz-1', userId: 'user11', userName: 'Player11', score: 0 },
     { id: 's12', quizId: 'quiz-1', userId: 'user12', userName: 'Player12', score: 2 },
+];
+
+export const blogPosts: BlogPost[] = [
+  {
+    id: 'post-1',
+    slug: 'why-tamil-slang-is-awesome',
+    title: 'Why Tamil Slang is Awesome and Worth Documenting',
+    content: `Tamil, one of the world's oldest living languages, has a rich and vibrant tapestry of slang that evolves with every generation. From the bustling streets of Chennai to the college campuses of Coimbatore, colloquialisms add color, humor, and a unique identity to everyday conversations.\n\nThis lexicon is our attempt to capture this dynamic part of our culture. Slang isn't just "improper" language; it's a living record of our times, reflecting our social dynamics, pop culture, and shared experiences.\n\nBy documenting these words, we preserve a piece of our identity for future generations. So next time you hear someone say "Machi," you'll know you're part of a rich linguistic tradition.`,
+    publishedAt: '2024-07-20T10:00:00Z',
+    author: {
+      name: 'The Lexicon Team',
+    },
+  },
+  {
+    id: 'post-2',
+    slug: 'top-5-chennai-slang-words',
+    title: 'Top 5 Chennai Slang Words You Should Know',
+    content: `Heading to Chennai? Get ready to immerse yourself in a unique linguistic landscape. Here are five essential slang words to get you started:\n\n1.  **Machi**: The quintessential term for a friend. Use it liberally!\n2.  **Kalaai**: Light-hearted teasing among friends. A cornerstone of friendly banter.\n3.  **Bejaar**: When something is extremely annoying or troublesome.\n4.  **Gethu**: Means "style" or "swag." Used to describe something cool or impressive.\n5.  **Vetti**: Refers to being idle or doing nothing productive.\n\nMaster these, and you'll be speaking like a local in no time!`,
+    publishedAt: '2024-07-15T12:30:00Z',
+    author: {
+      name: 'The Lexicon Team',
+    },
+  },
 ];

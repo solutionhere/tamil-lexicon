@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, ClipboardList, Ban, Users, BookMarked } from 'lucide-react';
+import { ArrowLeft, ClipboardList, Ban, Users, BookMarked, Newspaper } from 'lucide-react';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { words } from '@/lib/data';
@@ -78,7 +78,7 @@ export default function AdminPage() {
                     Manage lexicon content and application features.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2">
+                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <Card className="flex flex-col">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -109,6 +109,21 @@ export default function AdminPage() {
                         </CardContent>
                         <CardFooter>
                              <Button asChild><Link href="/admin/quizzes">Manage Quizzes</Link></Button>
+                        </CardFooter>
+                    </Card>
+                     <Card className="flex flex-col">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <Newspaper className="h-5 w-5" />
+                                Manage Blog
+                            </CardTitle>
+                            <CardDescription>Create and publish blog posts.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex-grow">
+                             <p className="text-muted-foreground">Write articles to engage the community.</p>
+                        </CardContent>
+                        <CardFooter>
+                             <Button asChild><Link href="/admin/blog">Manage Blog</Link></Button>
                         </CardFooter>
                     </Card>
                      {isSuperAdmin && (

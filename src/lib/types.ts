@@ -51,3 +51,16 @@ export type QuizScore = {
     userName: string;
     score: number;
 };
+
+// New Type for Blog feature
+export type BlogPost = {
+  id: string;
+  slug: string;
+  title: string;
+  content: string; // For simplicity, we'll treat this as pre-formatted text.
+  publishedAt: string; // ISO date string
+  author: {
+    name: string;
+    avatarUrl?: string;
+  };
+};

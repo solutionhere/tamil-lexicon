@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { PlusCircle, Search, Shield, LogOut, LogIn, LayoutDashboard, Puzzle, Loader2 } from 'lucide-react';
+import { PlusCircle, Search, Shield, LogOut, LogIn, LayoutDashboard, Puzzle, Loader2, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -67,6 +67,11 @@ export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeade
             <Button asChild variant="ghost" size="icon" aria-label="Take a Quiz">
                 <Link href="/quiz">
                     <Puzzle className="h-5 w-5" />
+                </Link>
+            </Button>
+             <Button asChild variant="ghost" size="icon" aria-label="Blog">
+                <Link href="/blog">
+                    <Newspaper className="h-5 w-5" />
                 </Link>
             </Button>
             {isAdmin && (

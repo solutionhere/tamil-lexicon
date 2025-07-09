@@ -29,3 +29,10 @@ export const quizCreationSchema = z.object({
   title: z.string().min(3, 'Quiz title must be at least 3 characters long.'),
   questions: z.array(quizQuestionSchema).min(1, 'A quiz must have at least one question.'),
 });
+
+// New schema for blog post creation
+export const blogPostSchema = z.object({
+  title: z.string().min(5, 'Title must be at least 5 characters.'),
+  slug: z.string().min(5, 'Slug must be at least 5 characters.').regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens.'),
+  content: z.string().min(100, 'Content must be at least 100 characters.'),
+});
