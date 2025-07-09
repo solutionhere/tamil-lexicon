@@ -2,11 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { WordForm } from '@/components/submission-form';
 import type { Category, Location, Word } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
 import { updateWordAction } from '../../actions';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -43,7 +40,7 @@ export default function EditWordPage({ params }: { params: { id: string } }) {
 
   if (loading) {
       return (
-        <div className="container mx-auto max-w-2xl px-4 py-12">
+        <div>
             <Skeleton className="h-10 w-48 mb-8" />
             <Skeleton className="h-96 w-full" />
         </div>
@@ -57,28 +54,18 @@ export default function EditWordPage({ params }: { params: { id: string } }) {
   const { word, categories, locations } = data;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-2xl px-4 py-12">
-        <div className="mb-2">
-            <Button variant="ghost" asChild>
-                <Link href="/admin/words">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Manage Words
-                </Link>
-            </Button>
-        </div>
-        <div className="mb-8 text-center">
-            <h1 className="font-headline text-4xl font-bold text-primary">Edit Word</h1>
-            <p className="mt-2 text-muted-foreground">Update the details for "{word.transliteration}".</p>
-        </div>
-        <WordForm
-          categories={categories}
-          locations={locations}
-          formAction={updateWordAction}
-          initialData={{...word, tamilWord: word.tamil, exampleTamil: word.example.tamil, exampleEnglish: word.example.english }}
-          submitButtonText="Update Word"
-        />
+    <div>
+      <div className="mb-8 text-center">
+          <h1 className="font-headline text-4xl font-bold text-primary">Edit Word</h1>
+          <p className="mt-2 text-muted-foreground">Update the details for "{word.transliteration}".</p>
       </div>
+      <WordForm
+        categories={categories}
+        locations={locations}
+        formAction={updateWordAction}
+        initialData={{...word, tamilWord: word.tamil, exampleTamil: word.example.tamil, exampleEnglish: word.example.english }}
+        submitButtonText="Update Word"
+      />
     </div>
   );
 }

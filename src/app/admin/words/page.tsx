@@ -13,8 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, PlusCircle, Edit, Trash2, Ban, CheckCircle, XCircle, Loader2, Eye } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, CheckCircle, XCircle, Loader2, Eye } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 
@@ -167,42 +166,32 @@ export default function ManageWordsPage() {
 
   if (authLoading) {
     return (
-      <div className="container mx-auto max-w-6xl px-4 py-12">
-          <Skeleton className="h-10 w-36 mb-8" />
-          <Card><CardHeader><Skeleton className="h-8 w-48" /></CardHeader><CardContent className="pt-6"><Skeleton className="h-64 w-full" /></CardContent></Card>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="container mx-auto max-w-md px-4 py-12 text-center"><Card><CardHeader className="items-center"><div className="mx-auto bg-destructive/10 p-3 rounded-full w-fit mb-2"><Ban className="h-8 w-8 text-destructive" /></div><CardTitle>Access Denied</CardTitle><CardDescription>You do not have permission to view this page.</CardDescription></CardHeader><CardContent><Button asChild><Link href="/">Back to Lexicon</Link></Button></CardContent></Card></div>
-      </div>
+      <Card><CardHeader><Skeleton className="h-8 w-48" /></CardHeader><CardContent className="pt-6"><Skeleton className="h-64 w-full" /></CardContent></Card>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-6xl px-4 py-12">
-        <div className="mb-4 flex justify-between items-center"><Button variant="ghost" asChild><Link href="/admin"><ArrowLeft className="mr-2 h-4 w-4" />Back to Admin</Link></Button><Button variant="default" asChild><Link href="/admin/words/add"><PlusCircle className="mr-2 h-4 w-4" />Add Word</Link></Button></div>
-        <Card>
-          <CardHeader><CardTitle>Manage Words</CardTitle><CardDescription>View, approve, edit, and add words to the lexicon.</CardDescription></CardHeader>
-          <CardContent>
-            <Tabs value={tab} onValueChange={setTab}>
-              <TabsList>
-                <TabsTrigger value="all">All ({words.length})</TabsTrigger>
-                <TabsTrigger value="published">Published ({words.filter(w => w.status === 'published' && !w.isFlagged).length})</TabsTrigger>
-                <TabsTrigger value="pending">Pending ({words.filter(w => w.status === 'pending').length})</TabsTrigger>
-                <TabsTrigger value="flagged">Flagged ({words.filter(w => w.isFlagged).length})</TabsTrigger>
-              </TabsList>
-              <div className="mt-4">
-                {loading || isPending ? <div className="py-10 text-center">Loading words...</div> : <WordTable words={filteredWords} categories={categories} onActionComplete={fetchData} />}
-              </div>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Manage Words</CardTitle>
+          <CardDescription>View, approve, edit, and add words to the lexicon.</CardDescription>
+        </div>
+         <Button variant="default" asChild><Link href="/admin/words/add"><PlusCircle className="mr-2 h-4 w-4" />Add Word</Link></Button>
+      </CardHeader>
+      <CardContent>
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList>
+            <TabsTrigger value="all">All ({words.length})</TabsTrigger>
+            <TabsTrigger value="published">Published ({words.filter(w => w.status === 'published' && !w.isFlagged).length})</TabsTrigger>
+            <TabsTrigger value="pending">Pending ({words.filter(w => w.status === 'pending').length})</TabsTrigger>
+            <TabsTrigger value="flagged">Flagged ({words.filter(w => w.isFlagged).length})</TabsTrigger>
+          </TabsList>
+          <div className="mt-4">
+            {loading || isPending ? <div className="py-10 text-center">Loading words...</div> : <WordTable words={filteredWords} categories={categories} onActionComplete={fetchData} />}
+          </div>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import React, { useActionState, useEffect, useRef, useState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useAuth } from '@/context/auth-provider';
@@ -12,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Ban, Trash2, Tag, Loader2 } from 'lucide-react';
+import { Ban, Trash2, Tag, Loader2 } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 
@@ -84,42 +83,33 @@ export default function ManageCategoriesPage() {
     const [removeState, removeFormAction] = useActionState(async (p,f) => handleAction(deleteCategoryAction, f), null);
 
     if (authLoading) {
-        return <div className="container mx-auto max-w-2xl px-4 py-12"><Skeleton className="h-10 w-36 mb-8" /><Card><CardHeader><Skeleton className="h-8 w-48" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card></div>;
+        return <div className="grid gap-8"><Card><CardHeader><Skeleton className="h-8 w-48" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card></div>;
     }
 
-    if (!isAdmin) {
-        return <div className="min-h-screen bg-background flex items-center justify-center"><div className="container mx-auto max-w-md px-4 py-12 text-center"><Card><CardHeader className="items-center"><div className="mx-auto bg-destructive/10 p-3 rounded-full w-fit mb-2"><Ban className="h-8 w-8 text-destructive" /></div><CardTitle>Access Denied</CardTitle><CardDescription>You do not have permission to manage categories.</CardDescription></CardHeader><CardContent><Button asChild><Link href="/admin">Back to Admin</Link></Button></CardContent></Card></div></div>;
-    }
-    
     return (
-        <div className="min-h-screen bg-background">
-            <div className="container mx-auto max-w-2xl px-4 py-12">
-                <div className="mb-4"><Button variant="ghost" asChild><Link href="/admin"><ArrowLeft className="mr-2 h-4 w-4" />Back to Admin</Link></Button></div>
-                <div className="grid gap-8">
-                    <Card><CardHeader><CardTitle>Add New Category</CardTitle><CardDescription>Create a new category for organizing words.</CardDescription></CardHeader><form action={addFormAction} ref={addFormRef}><CardContent><Input name="name" placeholder="e.g., Cinema Slang" required /></CardContent><CardFooter><AddCategoryButton /></CardFooter></form></Card>
-                    <Card>
-                        <CardHeader><CardTitle>Current Categories</CardTitle><CardDescription>This list shows all available categories.</CardDescription></CardHeader>
-                        <CardContent>
-                            {(loading || isPending) ? <p>Loading...</p> : 
-                            <Table className="mt-4">
-                                <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>ID</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
-                                <TableBody>
-                                    {categories.map(category => (
-                                        <TableRow key={category.id}>
-                                            <TableCell className="font-medium">{category.name}</TableCell>
-                                            <TableCell className="font-mono text-sm text-muted-foreground">{category.id}</TableCell>
-                                            <TableCell className="text-right">
-                                                <form action={removeFormAction}><input type="hidden" name="id" value={category.id} /><RemoveCategoryButton /></form>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            }
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+        <div className="grid gap-8">
+            <Card><CardHeader><CardTitle>Add New Category</CardTitle><CardDescription>Create a new category for organizing words.</CardDescription></CardHeader><form action={addFormAction} ref={addFormRef}><CardContent><Input name="name" placeholder="e.g., Cinema Slang" required /></CardContent><CardFooter><AddCategoryButton /></CardFooter></form></Card>
+            <Card>
+                <CardHeader><CardTitle>Current Categories</CardTitle><CardDescription>This list shows all available categories.</CardDescription></CardHeader>
+                <CardContent>
+                    {(loading || isPending) ? <p>Loading...</p> : 
+                    <Table className="mt-4">
+                        <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>ID</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                            {categories.map(category => (
+                                <TableRow key={category.id}>
+                                    <TableCell className="font-medium">{category.name}</TableCell>
+                                    <TableCell className="font-mono text-sm text-muted-foreground">{category.id}</TableCell>
+                                    <TableCell className="text-right">
+                                        <form action={removeFormAction}><input type="hidden" name="id" value={category.id} /><RemoveCategoryButton /></form>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    }
+                </CardContent>
+            </Card>
         </div>
     );
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import React, { useActionState, useEffect, useRef, useState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useAuth } from '@/context/auth-provider';
@@ -11,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Ban, Trash2, UserPlus, Crown, Loader2 } from 'lucide-react';
+import { Trash2, UserPlus, Crown, Loader2 } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
@@ -89,49 +88,40 @@ export default function ManageAdminsPage() {
     const [removeState, removeFormAction] = useActionState(async (p,f) => handleAction(removeAdminAction, f), null);
 
     if (authLoading) {
-        return <div className="container mx-auto max-w-2xl px-4 py-12"><Skeleton className="h-10 w-36 mb-8" /><Card><CardHeader><Skeleton className="h-8 w-48" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card></div>;
-    }
-
-    if (!isSuperAdmin) {
-        return <div className="min-h-screen bg-background flex items-center justify-center"><div className="container mx-auto max-w-md px-4 py-12 text-center"><Card><CardHeader className="items-center"><div className="mx-auto bg-destructive/10 p-3 rounded-full w-fit mb-2"><Ban className="h-8 w-8 text-destructive" /></div><CardTitle>Access Denied</CardTitle><CardDescription>Only a Super Admin can manage users.</CardDescription></CardHeader><CardContent><Button asChild><Link href="/admin">Back to Admin</Link></Button></CardContent></Card></div></div>;
+        return <div className="grid gap-8"><Card><CardHeader><Skeleton className="h-8 w-48" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card></div>
     }
     
     return (
-        <div className="min-h-screen bg-background">
-            <div className="container mx-auto max-w-2xl px-4 py-12">
-                <div className="mb-4"><Button variant="ghost" asChild><Link href="/admin"><ArrowLeft className="mr-2 h-4 w-4" />Back to Admin</Link></Button></div>
-                <div className="grid gap-8">
-                    <Card><CardHeader><CardTitle>Add New Admin</CardTitle><CardDescription>Enter the Firebase User ID (UID) of the user you want to grant admin privileges to.</CardDescription></CardHeader><form action={addFormAction} ref={addFormRef}><CardContent><Input name="uid" placeholder="Enter User ID (UID)" required /></CardContent><CardFooter><AddAdminButton /></CardFooter></form></Card>
-                    <Card>
-                        <CardHeader><CardTitle>Current Admins</CardTitle><CardDescription>This list shows all users with admin privileges.</CardDescription></CardHeader>
-                        <CardContent>
-                            {(loading || isPending) ? <p>Loading...</p> : 
-                            <Table className="mt-4">
-                                <TableHeader><TableRow><TableHead>User ID (UID)</TableHead><TableHead>Role</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
-                                <TableBody>
-                                    {admins.map(admin => (
-                                        <TableRow key={admin.id}>
-                                            <TableCell className="font-mono">{admin.id}</TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    {admin.role === 'superadmin' && <Crown className="h-4 w-4 text-primary" />}
-                                                    {admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                {admin.role !== 'superadmin' && (
-                                                    <form action={removeFormAction}><input type="hidden" name="uid" value={admin.id} /><RemoveAdminButton uid={admin.id} /></form>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            }
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+        <div className="grid gap-8">
+            <Card><CardHeader><CardTitle>Add New Admin</CardTitle><CardDescription>Enter the Firebase User ID (UID) of the user you want to grant admin privileges to.</CardDescription></CardHeader><form action={addFormAction} ref={addFormRef}><CardContent><Input name="uid" placeholder="Enter User ID (UID)" required /></CardContent><CardFooter><AddAdminButton /></CardFooter></form></Card>
+            <Card>
+                <CardHeader><CardTitle>Current Admins</CardTitle><CardDescription>This list shows all users with admin privileges.</CardDescription></CardHeader>
+                <CardContent>
+                    {(loading || isPending) ? <p>Loading...</p> : 
+                    <Table className="mt-4">
+                        <TableHeader><TableRow><TableHead>User ID (UID)</TableHead><TableHead>Role</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                            {admins.map(admin => (
+                                <TableRow key={admin.id}>
+                                    <TableCell className="font-mono">{admin.id}</TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            {admin.role === 'superadmin' && <Crown className="h-4 w-4 text-primary" />}
+                                            {admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        {admin.role !== 'superadmin' && (
+                                            <form action={removeFormAction}><input type="hidden" name="uid" value={admin.id} /><RemoveAdminButton uid={admin.id} /></form>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    }
+                </CardContent>
+            </Card>
         </div>
     );
 }
