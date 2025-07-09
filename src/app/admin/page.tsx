@@ -7,7 +7,7 @@ import { ArrowLeft, ClipboardList, Ban, Users, BookMarked, Newspaper } from 'luc
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs,getCountFromServer } from 'firebase/firestore';
+import { collection, query, where, getCountFromServer } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 type WordCounts = {
@@ -23,6 +23,10 @@ export default function AdminPage() {
 
   useEffect(() => {
     const fetchWordCounts = async () => {
+        if (!isAdmin) {
+            setLoading(false);
+            return;
+        }
         try {
             const publishedQuery = query(collection(db, 'words'), where('status', '==', 'published'), where('isFlagged', '==', false));
             const pendingQuery = query(collection(db, 'words'), where('status', '==', 'pending'));
@@ -48,7 +52,7 @@ export default function AdminPage() {
     if (!authLoading) {
         fetchWordCounts();
     }
-  }, [authLoading]);
+  }, [authLoading, isAdmin]);
 
   if (authLoading || loading) {
     return (

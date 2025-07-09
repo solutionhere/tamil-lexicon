@@ -33,6 +33,7 @@ export async function createQuizAction(
     revalidatePath('/admin/quizzes');
     return { message: `Successfully created quiz: "${validatedFields.data.title}".`, success: true };
   } catch (error) {
+    console.error("Database error creating quiz:", error);
     return { message: 'Database error.', success: false };
   }
 }
@@ -55,6 +56,7 @@ export async function updateQuizAction(
     revalidatePath(`/admin/quizzes/${quizId}/edit`);
     return { message: `Successfully updated quiz: "${quizData.title}".`, success: true };
   } catch (error) {
+    console.error("Database error updating quiz:", error);
     return { message: 'Database error.', success: false };
   }
 }
@@ -80,6 +82,7 @@ export async function deleteQuizAction(
     revalidatePath('/admin/quizzes');
     return { message: 'Successfully deleted quiz.', success: true };
   } catch (error) {
+    console.error("Database error deleting quiz:", error);
     return { message: 'Database error.', success: false };
   }
 }

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { blogPostSchema, blogPostUpdateSchema } from '@/lib/schemas';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
 
 export type BlogPostFormState = {
   message?: string;
@@ -22,16 +23,26 @@ export async function createPostAction(
     return { errors: validatedFields.error.errors, message: 'Validation failed.', success: false };
   }
 
+  // Basic check for authenticated user
+  if (!auth.currentUser) {
+      return { message: 'Authentication error: You must be logged in.', success: false };
+  }
+
   try {
     const postData = {
         ...validatedFields.data,
         publishedAt: new Date(),
+        author: {
+            name: auth.currentUser.displayName || "Anonymous",
+            avatarUrl: auth.currentUser.photoURL || "",
+        }
     };
     await addDoc(collection(db, 'blogPosts'), postData);
     revalidatePath('/admin/blog');
     revalidatePath('/blog');
     return { message: `Successfully created post: "${validatedFields.data.title}".`, success: true };
   } catch (error) {
+    console.error("Database error creating post:", error);
     return { message: 'Database error.', success: false };
   }
 }
@@ -49,11 +60,14 @@ export async function updatePostAction(
   const { postId, ...postData } = validatedFields.data;
 
   try {
-    await updateDoc(doc(db, 'blogPosts', postId), postData);
+    const postRef = doc(db, 'blogPosts', postId);
+    await updateDoc(postRef, postData);
+    
     revalidatePath('/admin/blog');
     revalidatePath(`/blog/${postData.slug}`);
     return { message: `Successfully updated post: "${postData.title}".`, success: true };
   } catch (error) {
+    console.error("Database error updating post:", error);
     return { message: 'Database error.', success: false };
   }
 }
@@ -75,6 +89,7 @@ export async function deletePostAction(
     revalidatePath('/blog');
     return { message: 'Successfully deleted post.', success: true };
   } catch (error) {
+    console.error("Database error deleting post:", error);
     return { message: 'Database error.', success: false };
   }
 }

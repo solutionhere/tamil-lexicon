@@ -24,6 +24,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
             setPost({
                 id: postDoc.id,
                 ...data,
+                // Convert Firestore Timestamp to string
                 publishedAt: data.publishedAt.toDate().toISOString(),
             } as BlogPost);
         }

@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 type Role = 'user' | 'admin' | 'superadmin';
 
@@ -35,6 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (userDoc.exists()) {
           setRole(userDoc.data().role || 'user');
         } else {
+          // If user doc doesn't exist, create it with 'user' role
+          await setDoc(userDocRef, { role: 'user' }, { merge: true });
           setRole('user');
         }
       } else {

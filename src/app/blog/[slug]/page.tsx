@@ -21,6 +21,7 @@ async function getPost(slug: string): Promise<BlogPost | null> {
     return {
         id: doc.id,
         ...data,
+        // Convert Firestore Timestamp to string
         publishedAt: data.publishedAt.toDate().toISOString(),
     } as BlogPost;
 }

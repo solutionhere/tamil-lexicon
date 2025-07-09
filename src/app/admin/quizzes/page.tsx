@@ -58,17 +58,23 @@ export default function AdminQuizzesPage() {
   const [isPending, startTransition] = useTransition();
 
   const fetchQuizzes = React.useCallback(() => {
+    if (!isAdmin) {
+        setLoading(false);
+        return;
+    };
     startTransition(async () => {
         setLoading(true);
         const quizzesSnapshot = await getDocs(collection(db, 'quizzes'));
         setQuizzes(quizzesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Quiz));
         setLoading(false);
     });
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
-    fetchQuizzes();
-  }, [fetchQuizzes]);
+    if (!authLoading) {
+      fetchQuizzes();
+    }
+  }, [authLoading, fetchQuizzes]);
 
 
   if (authLoading) {

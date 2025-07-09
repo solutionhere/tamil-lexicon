@@ -25,6 +25,7 @@ export async function addAdminAction(prevState: ActionState, formData: FormData)
     revalidatePath('/admin/users');
     return { message: `Successfully added admin: ${uid}.`, success: true };
   } catch (e) {
+    console.error("Database error adding admin:", e);
     return { message: "Database error.", success: false };
   }
 }
@@ -43,6 +44,7 @@ export async function removeAdminAction(prevState: ActionState, formData: FormDa
     revalidatePath('/admin/users');
     return { message: `Successfully removed admin role from: ${uid}.`, success: true };
   } catch(e) {
+    console.error("Database error removing admin:", e);
     return { message: "Database error.", success: false };
   }
 }

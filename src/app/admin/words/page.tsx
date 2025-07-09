@@ -135,7 +135,18 @@ export default function ManageWordsPage() {
         const wordsQuery = query(collection(db, "words"), orderBy('createdAt', 'desc'));
         const categoriesQuery = query(collection(db, "categories"));
         const [wordsSnapshot, categoriesSnapshot] = await Promise.all([getDocs(wordsQuery), getDocs(categoriesQuery)]);
-        setWords(wordsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Word)));
+        
+        const fetchedWords = wordsSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                // Convert Firestore Timestamp to plain object if needed, otherwise it's fine
+                createdAt: data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+            } as Word;
+        });
+        
+        setWords(fetchedWords);
         setCategories(categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category)));
         setLoading(false);
     });

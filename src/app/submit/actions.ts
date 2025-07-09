@@ -1,4 +1,4 @@
-"use server";
+ "use server";
 
 import { z } from 'zod';
 import { submissionSchema } from '@/lib/schemas';
@@ -26,9 +26,10 @@ export async function submitWord(
   }
   
   try {
-    const { exampleTamil, exampleEnglish, ...rest } = validatedFields.data;
+    const { exampleTamil, exampleEnglish, tamilWord, ...rest } = validatedFields.data;
     const wordData = {
         ...rest,
+        tamil: tamilWord,
         example: {
             tamil: exampleTamil,
             english: exampleEnglish

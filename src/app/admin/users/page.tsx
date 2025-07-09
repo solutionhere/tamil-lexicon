@@ -50,6 +50,10 @@ export default function ManageAdminsPage() {
     const [isPending, startTransition] = useTransition();
 
     const fetchAdmins = React.useCallback(() => {
+        if (!isSuperAdmin) {
+            setLoading(false);
+            return;
+        }
         startTransition(async () => {
             setLoading(true);
             const q = query(collection(db, "users"), where("role", "in", ["admin", "superadmin"]));
@@ -58,7 +62,7 @@ export default function ManageAdminsPage() {
             setAdmins(adminList);
             setLoading(false);
         });
-    }, []);
+    }, [isSuperAdmin]);
 
     useEffect(() => {
         if (!authLoading) {

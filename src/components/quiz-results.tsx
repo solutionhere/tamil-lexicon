@@ -24,27 +24,35 @@ export function QuizResults({ score, totalQuestions, quizId, user }: QuizResults
     
     useEffect(() => {
       const processScore = async () => {
-        // Save the current user's score
-        const newScore: Omit<QuizScore, 'id'> = {
-          quizId,
-          userId: user.uid,
-          userName: user.displayName ?? 'Anonymous',
-          score,
-          createdAt: new Date(),
-        };
-        await addDoc(collection(db, 'quizScores'), newScore);
+        try {
+            // Save the current user's score
+            const newScore: Omit<QuizScore, 'id'> = {
+              quizId,
+              userId: user.uid,
+              userName: user.displayName ?? 'Anonymous',
+              score,
+              createdAt: new Date(),
+            };
+            await addDoc(collection(db, 'quizScores'), newScore);
+        } catch (error) {
+            console.error("Error saving score:", error);
+        }
 
-        // Fetch top 10 scores
-        const q = query(
-            collection(db, 'quizScores'),
-            where('quizId', '==', quizId),
-            orderBy('score', 'desc'),
-            orderBy('createdAt', 'asc'),
-            limit(10)
-        );
-        const snapshot = await getDocs(q);
-        const scores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as QuizScore);
-        setLeaderboard(scores);
+        try {
+            // Fetch top 10 scores
+            const q = query(
+                collection(db, 'quizScores'),
+                where('quizId', '==', quizId),
+                orderBy('score', 'desc'),
+                orderBy('createdAt', 'asc'),
+                limit(10)
+            );
+            const snapshot = await getDocs(q);
+            const scores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as QuizScore);
+            setLeaderboard(scores);
+        } catch (error) {
+            console.error("Error fetching leaderboard:", error);
+        }
       };
 
       processScore();
