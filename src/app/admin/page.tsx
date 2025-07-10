@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { ClipboardList, Users, BookMarked, Newspaper, Tags, Globe } from 'lucide-react';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { collection, query, where, getCountFromServer } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -23,42 +23,42 @@ export default function AdminPage() {
   const [counts, setCounts] = useState<AdminDashboardCounts>({ published: 0, pending: 0, flagged: 0, categories: 0, locations: 0 });
   const [loading, setLoading] = useState(true);
 
-  const fetchCounts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const publishedQuery = query(collection(db, 'words'), where('status', '==', 'published'), where('isFlagged', '==', false));
-      const pendingQuery = query(collection(db, 'words'), where('status', '==', 'pending'));
-      const flaggedQuery = query(collection(db, 'words'), where('isFlagged', '==', true));
-      const categoriesQuery = collection(db, 'categories');
-      const locationsQuery = collection(db, 'locations');
-
-      const [publishedSnap, pendingSnap, flaggedSnap, categoriesSnap, locationsSnap] = await Promise.all([
-          getCountFromServer(publishedQuery),
-          getCountFromServer(pendingQuery),
-          getCountFromServer(flaggedQuery),
-          getCountFromServer(categoriesQuery),
-          getCountFromServer(locationsQuery)
-      ]);
-
-      setCounts({
-          published: publishedSnap.data().count,
-          pending: pendingSnap.data().count,
-          flagged: flaggedSnap.data().count,
-          categories: categoriesSnap.data().count,
-          locations: locationsSnap.data().count,
-      });
-    } catch (error) {
-      console.error("Error fetching admin counts:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
+    const fetchCounts = async () => {
+        setLoading(true);
+        try {
+          const publishedQuery = query(collection(db, 'words'), where('status', '==', 'published'), where('isFlagged', '==', false));
+          const pendingQuery = query(collection(db, 'words'), where('status', '==', 'pending'));
+          const flaggedQuery = query(collection(db, 'words'), where('isFlagged', '==', true));
+          const categoriesQuery = collection(db, 'categories');
+          const locationsQuery = collection(db, 'locations');
+
+          const [publishedSnap, pendingSnap, flaggedSnap, categoriesSnap, locationsSnap] = await Promise.all([
+              getCountFromServer(publishedQuery),
+              getCountFromServer(pendingQuery),
+              getCountFromServer(flaggedQuery),
+              getCountFromServer(categoriesQuery),
+              getCountFromServer(locationsQuery)
+          ]);
+
+          setCounts({
+              published: publishedSnap.data().count,
+              pending: pendingSnap.data().count,
+              flagged: flaggedSnap.data().count,
+              categories: categoriesSnap.data().count,
+              locations: locationsSnap.data().count,
+          });
+        } catch (error) {
+          console.error("Error fetching admin counts:", error);
+        } finally {
+          setLoading(false);
+        }
+    };
+    
     if (!authLoading) {
       fetchCounts();
     }
-  }, [authLoading, fetchCounts]);
+  }, [authLoading]);
 
   if (authLoading || loading) {
     return (
