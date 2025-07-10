@@ -26,12 +26,6 @@ export default function AdminPage() {
 
   useEffect(() => {
     async function fetchCounts() {
-        if (authLoading) {
-            // Don't fetch if auth state is still loading.
-            // The loading UI will be handled by the combined loading state below.
-            return;
-        }
-
         try {
             const publishedQuery = query(collection(db, 'words'), where('status', '==', 'published'), where('isFlagged', '==', false));
             const pendingQuery = query(collection(db, 'words'), where('status', '==', 'pending'));
@@ -61,7 +55,10 @@ export default function AdminPage() {
         }
     }
     
-    fetchCounts();
+    // Only fetch data when authentication is resolved
+    if (!authLoading) {
+        fetchCounts();
+    }
   }, [authLoading]);
 
   if (loading || authLoading) {
