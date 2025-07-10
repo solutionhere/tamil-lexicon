@@ -15,14 +15,11 @@ export default function AdminPage() {
   const [isPending, startTransition] = useTransition();
   
   useEffect(() => {
-    // Don't fetch anything until we know the user's auth status is resolved.
     if (authLoading) {
       return;
     }
-
-    startTransition(async () => {
-      const fetchedCounts = await getAdminDashboardCounts();
-      setCounts(fetchedCounts);
+    startTransition(() => {
+        getAdminDashboardCounts().then(setCounts);
     });
   }, [authLoading]);
 
