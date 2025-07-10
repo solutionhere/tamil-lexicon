@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -7,63 +6,29 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { ClipboardList, Users, BookMarked, Newspaper, Tags, Globe } from 'lucide-react';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect, useState } from 'react';
-import { collection, query, where, getCountFromServer } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-
-type AdminDashboardCounts = {
-    published: number;
-    pending: number;
-    flagged: number;
-    categories: number;
-    locations: number;
-};
+import { useEffect, useState, useTransition } from 'react';
+import { getAdminDashboardCounts, type AdminDashboardCounts } from './actions';
 
 export default function AdminPage() {
   const { isSuperAdmin, loading: authLoading } = useAuth();
-  const [counts, setCounts] = useState<AdminDashboardCounts>({ published: 0, pending: 0, flagged: 0, categories: 0, locations: 0 });
-  const [loading, setLoading] = useState(true);
-
+  const [counts, setCounts] = useState<AdminDashboardCounts | null>(null);
+  const [isPending, startTransition] = useTransition();
+  
   useEffect(() => {
-    // We can't fetch data until we know the user's auth status.
+    // Don't fetch anything until we know the user's auth status is resolved.
     if (authLoading) {
       return;
     }
 
-    const fetchCounts = async () => {
-        try {
-            const publishedQuery = query(collection(db, 'words'), where('status', '==', 'published'), where('isFlagged', '==', false));
-            const pendingQuery = query(collection(db, 'words'), where('status', '==', 'pending'));
-            const flaggedQuery = query(collection(db, 'words'), where('isFlagged', '==', true));
-            const categoriesQuery = collection(db, 'categories');
-            const locationsQuery = collection(db, 'locations');
-
-            const [publishedSnap, pendingSnap, flaggedSnap, categoriesSnap, locationsSnap] = await Promise.all([
-                getCountFromServer(publishedQuery),
-                getCountFromServer(pendingQuery),
-                getCountFromServer(flaggedQuery),
-                getCountFromServer(categoriesQuery),
-                getCountFromServer(locationsQuery)
-            ]);
-
-            setCounts({
-                published: publishedSnap.data().count,
-                pending: pendingSnap.data().count,
-                flagged: flaggedSnap.data().count,
-                categories: categoriesSnap.data().count,
-                locations: locationsSnap.data().count,
-            });
-        } catch (error) {
-            console.error("Error fetching admin counts:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-    
-    fetchCounts();
+    startTransition(async () => {
+      const fetchedCounts = await getAdminDashboardCounts();
+      setCounts(fetchedCounts);
+    });
   }, [authLoading]);
 
-  if (loading || authLoading) {
+  const loading = isPending || authLoading || counts === null;
+
+  if (loading) {
     return (
         <Card>
             <CardHeader>
@@ -71,6 +36,8 @@ export default function AdminPage() {
                 <Skeleton className="h-4 w-full max-w-md" />
             </CardHeader>
             <CardContent className="pt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
                 <Skeleton className="h-48 w-full" />
                 <Skeleton className="h-48 w-full" />
                 <Skeleton className="h-48 w-full" />
