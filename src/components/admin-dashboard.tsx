@@ -77,7 +77,7 @@ export function AdminDashboard({ counts }: AdminDashboardProps) {
                         <CardTitle className="flex items-center gap-2 text-lg">
                             <Tags className="h-5 w-5" />
                             Manage Categories
-                        </Title>
+                        </CardTitle>
                         <CardDescription>Add or remove word categories.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-grow">
