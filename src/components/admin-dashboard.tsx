@@ -42,7 +42,7 @@ export function AdminDashboard({ counts }: AdminDashboardProps) {
                 <CardDescription>Could not load dashboard data.</CardDescription>
             </CardHeader>
         </Card>
-      )
+      );
   }
 
   return (
@@ -154,4 +154,3 @@ export function AdminDashboard({ counts }: AdminDashboardProps) {
     </div>
   );
 }
-
