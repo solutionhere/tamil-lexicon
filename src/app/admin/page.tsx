@@ -24,6 +24,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+  
     const fetchCounts = async () => {
         setLoading(true);
         try {
@@ -55,9 +59,7 @@ export default function AdminPage() {
         }
     };
     
-    if (!authLoading) {
-      fetchCounts();
-    }
+    fetchCounts();
   }, [authLoading]);
 
   if (authLoading || loading) {
