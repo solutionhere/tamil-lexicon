@@ -24,7 +24,7 @@ interface LexiconHeaderProps {
 }
 
 export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeaderProps) {
-    const { user, isAdmin, signInWithGoogle, signOut, loading } = useAuth();
+    const { user, isAdmin, role, signInWithGoogle, signOut, loading } = useAuth();
     const [isSigningIn, setIsSigningIn] = useState(false);
 
     const handleSignIn = useCallback(async () => {
@@ -100,7 +100,10 @@ export function LexiconHeader({ searchQuery, onSearchQueryChange }: LexiconHeade
                         <DropdownMenuContent className="w-56" align="end" forceMount>
                             <DropdownMenuLabel className="font-normal">
                                 <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                    <p className="text-sm font-medium leading-none flex items-center gap-1.5">
+                                        <span>{user.displayName}</span>
+                                        {role && <span className="text-xs text-muted-foreground">({role.charAt(0).toUpperCase() + role.slice(1)})</span>}
+                                    </p>
                                     <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                                 </div>
                             </DropdownMenuLabel>
