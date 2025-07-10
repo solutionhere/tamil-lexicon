@@ -28,22 +28,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Set up the listener for authentication state changes.
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true); // Start loading whenever auth state might change
       if (user) {
         setUser(user);
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setRole(userDoc.data().role || 'user');
-        } else {
-          // If user doc doesn't exist, create it with 'user' role
-          await setDoc(userDocRef, { role: 'user' }, { merge: true });
-          setRole('user');
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              setRole(userDoc.data().role || 'user');
+            } else {
+              // If user doc doesn't exist, create it with 'user' role
+              await setDoc(userDocRef, { role: 'user' }, { merge: true });
+              setRole('user');
+            }
+        } catch (error) {
+            console.error("Error fetching user role:", error);
+            setRole('user'); // Default to 'user' on error
         }
       } else {
         setUser(null);
         setRole(null);
       }
-      setLoading(false);
+      setLoading(false); // Stop loading after user and role are settled
     });
     return () => unsubscribe();
   }, []);
