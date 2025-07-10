@@ -6,26 +6,27 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { ClipboardList, Users, BookMarked, Newspaper, Tags, Globe } from 'lucide-react';
 import { useAuth } from '@/context/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState } from 'react';
 import { getAdminDashboardCounts, type AdminDashboardCounts } from './actions';
 
 export default function AdminPage() {
   const { isSuperAdmin, loading: authLoading } = useAuth();
   const [counts, setCounts] = useState<AdminDashboardCounts | null>(null);
-  const [isPending, startTransition] = useTransition();
-  
+  const [dataLoading, setDataLoading] = useState(true);
+
   useEffect(() => {
-    if (authLoading) {
-      return;
+    // Only fetch data if auth has finished loading
+    if (!authLoading) {
+      getAdminDashboardCounts().then(data => {
+        setCounts(data);
+        setDataLoading(false);
+      });
     }
-    startTransition(() => {
-        getAdminDashboardCounts().then(setCounts);
-    });
-  }, [authLoading]);
+  }, [authLoading]); // This effect depends only on the authentication loading state
 
-  const loading = isPending || authLoading || counts === null;
+  const isLoading = authLoading || dataLoading;
 
-  if (loading) {
+  if (isLoading) {
     return (
         <Card>
             <CardHeader>
@@ -41,6 +42,18 @@ export default function AdminPage() {
             </CardContent>
         </Card>
     );
+  }
+
+  // We check for counts existence here, after loading is false.
+  if (!counts) {
+      return (
+          <Card>
+            <CardHeader>
+                <CardTitle>Admin Dashboard</CardTitle>
+                <CardDescription>Could not load dashboard data.</CardDescription>
+            </CardHeader>
+        </Card>
+      )
   }
 
   return (
