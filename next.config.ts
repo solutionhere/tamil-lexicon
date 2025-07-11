@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+
+  output: 'export',
+  basePath: '/tamil-lexicon',
+  trailingSlash: true,
   images: {
     remotePatterns: [
       {
