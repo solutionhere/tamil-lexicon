@@ -12,9 +12,9 @@ import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, CheckCircle } from 'lucide-react';
+import { RichTextEditor } from './rich-text-editor';
 
 interface BlogPostFormProps {
     formAction: (prevState: BlogPostFormState, formData: FormData) => Promise<BlogPostFormState>;
@@ -58,6 +58,7 @@ export function BlogPostForm({ formAction, initialData, submitButtonText = "Subm
             });
             if (!isEditMode) {
                 form.reset();
+                form.setValue('content', ''); // Explicitly clear Tiptap editor
                 formRef.current?.reset();
             }
         } else if (state.message) {
@@ -81,7 +82,12 @@ export function BlogPostForm({ formAction, initialData, submitButtonText = "Subm
                 evt.preventDefault();
                 form.handleSubmit(() => {
                 startTransition(() => {
-                    const formData = new FormData(formRef.current!);
+                    const formData = new FormData();
+                    const formValues = form.getValues();
+                    formData.append('title', formValues.title);
+                    formData.append('slug', formValues.slug);
+                    formData.append('content', formValues.content);
+
                     if (isEditMode) {
                         formData.append('postId', initialData.id);
                     }
@@ -121,7 +127,12 @@ export function BlogPostForm({ formAction, initialData, submitButtonText = "Subm
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Content</FormLabel>
-                        <FormControl><Textarea placeholder="Write your blog post here..." {...field} rows={15} /></FormControl>
+                        <FormControl>
+                            <RichTextEditor
+                                content={field.value}
+                                onChange={field.onChange}
+                            />
+                        </FormControl>
                         <FormMessage />
                     </FormItem>
                     )}

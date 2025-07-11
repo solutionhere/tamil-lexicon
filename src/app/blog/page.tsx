@@ -22,6 +22,15 @@ async function getBlogPosts(): Promise<BlogPost[]> {
     });
 }
 
+function getExcerpt(html: string, length = 150) {
+    if (!html) return '';
+    // This is a simple regex to strip HTML tags. 
+    // For production, a more robust library might be better.
+    const plainText = html.replace(/<[^>]*>?/gm, '');
+    if (plainText.length <= length) return plainText;
+    return plainText.substring(0, length) + '...';
+}
+
 export default async function BlogPage() {
   const posts = await getBlogPosts();
 
@@ -54,7 +63,7 @@ export default async function BlogPage() {
                     </CardHeader>
                     <CardContent className="flex-grow">
                         <p className="line-clamp-3 text-muted-foreground">
-                            {post.content}
+                           {getExcerpt(post.content)}
                         </p>
                     </CardContent>
                     <CardFooter>

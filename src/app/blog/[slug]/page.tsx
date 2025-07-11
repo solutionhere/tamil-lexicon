@@ -33,6 +33,15 @@ export async function generateStaticParams() {
   }));
 }
 
+function stripHtml(html: string){
+    if (typeof window === 'undefined') {
+        // Simple server-side stripping
+        return html.replace(/<[^>]*>?/gm, '');
+    }
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || "";
+}
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const post = await getPost(params.slug);
 
@@ -40,12 +49,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     return { title: 'Post not found - Tamil Lexicon Blog' };
   }
 
+  const description = stripHtml(post.content).substring(0, 160);
+
   return {
     title: `${post.title} - Tamil Lexicon Blog`,
-    description: post.content.substring(0, 160),
+    description: description,
     openGraph: {
         title: post.title,
-        description: post.content.substring(0, 160),
+        description: description,
         type: 'article',
         publishedTime: post.publishedAt,
         authors: [post.author.name],
@@ -92,9 +103,10 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                 </div>
             </header>
             
-            <div className="text-lg leading-relaxed whitespace-pre-line space-y-6">
-                {post.content}
-            </div>
+            <div 
+                className="prose prose-lg dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+            />
         </article>
       </div>
     </div>
