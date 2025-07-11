@@ -1,7 +1,7 @@
 import { LexiconShell } from '@/components/lexicon-shell';
 import type { Word, Category, Location } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 
 async function getLexiconData() {
   const wordsQuery = query(collection(db, 'words'), where('status', '==', 'published'));
