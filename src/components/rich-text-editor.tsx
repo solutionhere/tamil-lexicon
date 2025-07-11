@@ -29,7 +29,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -122,11 +121,9 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
       <Separator orientation="vertical" className="h-8 w-[1px]" />
       
       <AlertDialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
-        <AlertDialogTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8" type="button">
+          <Button asChild variant="ghost" size="icon" className="h-8 w-8" type="button" onClick={() => setIsImageDialogOpen(true)}>
             <ImageIcon className="h-4 w-4" />
           </Button>
-        </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Add Image URL</AlertDialogTitle>
@@ -175,7 +172,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your bl
     content: content,
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose-base max-w-none m-5 focus:outline-none',
+        class: 'prose dark:prose-invert prose-sm sm:prose-base max-w-none focus:outline-none',
       },
     },
     onUpdate({ editor }) {
@@ -186,7 +183,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your bl
   return (
     <div className="flex flex-col justify-stretch rounded-md border border-input">
         <EditorToolbar editor={editor} />
-        <EditorContent editor={editor} className="min-h-[300px]" />
+        <EditorContent editor={editor} className="min-h-[300px] p-5" />
     </div>
   );
 }
