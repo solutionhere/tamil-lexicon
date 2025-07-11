@@ -47,7 +47,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
 
   const addImage = useCallback(() => {
     if (imageUrl) {
-      editor.chain().focus().setImage({ src: imageUrl }).run();
+      editor.chain().focus().setImage({ src: imageUrl }).createParagraphNear().run();
       setImageUrl('');
       setIsImageDialogOpen(false);
     }
