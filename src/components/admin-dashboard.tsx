@@ -140,7 +140,7 @@ export function AdminDashboard({ counts }: AdminDashboardProps) {
                                 Manage Admins
                             </Title>
                             <CardDescription>Add or remove admin users.</CardDescription>
-                        </CardHeader>
+                        </Header>
                         <CardContent className="flex-grow">
                              <p className="text-muted-foreground">Control who has access to this dashboard.</p>
                         </CardContent>
