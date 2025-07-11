@@ -1,5 +1,9 @@
 import type {NextConfig} from 'next';
 
+const repo = 'tamil-lexicon';
+const assetPrefix = `/${repo}/`;
+const basePath = `/${repo}`;
+
 const nextConfig: NextConfig = {
   /* config options here */
   typescript: {
@@ -11,7 +15,10 @@ const nextConfig: NextConfig = {
 
   output: 'export',
   trailingSlash: true,
+  assetPrefix: assetPrefix,
+  basePath: basePath,
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
