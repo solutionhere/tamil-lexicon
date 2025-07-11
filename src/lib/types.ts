@@ -1,3 +1,5 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type Category = {
   id: string;
   name: string;
@@ -25,12 +27,11 @@ export type Word = {
   tags?: string[]; // New field for tags
   status: 'published' | 'pending';
   isFlagged?: boolean;
-  submittedBy?: string; // User ID of the submitter
-  createdAt: any; // Firestore Timestamp
+  userId?: string;
+  createdAt: Timestamp | Date;
 };
 
 export type QuizQuestion = {
-    id: string;
     text: string;
     options: string[];
     correctAnswerIndex: number;
@@ -51,7 +52,7 @@ export type QuizScore = {
     userId: string;
     userName: string;
     score: number;
-    createdAt: any; // Firestore Timestamp
+    createdAt: Timestamp | Date;
 };
 
 export type BlogPost = {
@@ -64,4 +65,10 @@ export type BlogPost = {
     name: string;
     avatarUrl?: string;
   };
+};
+
+export type UserRole = 'user' | 'admin' | 'superadmin';
+
+export type UserProfile = {
+    role: UserRole;
 };

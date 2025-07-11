@@ -140,7 +140,7 @@ export function QuizCreationForm({ formAction, initialData, submitButtonText = "
                           >
                            {[0, 1, 2, 3].map((optionIndex) => (
                               <FormField
-                                  key={optionIndex}
+                                  key={`${field.name}-${optionIndex}`}
                                   control={form.control}
                                   name={`questions.${index}.options.${optionIndex}`}
                                   render={({ field: optionField }) => (

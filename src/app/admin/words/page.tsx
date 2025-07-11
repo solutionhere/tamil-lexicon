@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlusCircle, Edit, Trash2, CheckCircle, XCircle, Loader2, Eye } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, query, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy, type Timestamp } from 'firebase/firestore';
 
 
 // Button component with pending state for form actions
@@ -137,11 +137,12 @@ export default function ManageWordsPage() {
         
         const fetchedWords = wordsSnapshot.docs.map(doc => {
             const data = doc.data();
+            const createdAtTimestamp = data.createdAt as Timestamp;
             return {
                 id: doc.id,
                 ...data,
-                // Convert Firestore Timestamp to plain object if needed, otherwise it's fine
-                createdAt: data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+                // Safely convert Firestore Timestamp to Date
+                createdAt: createdAtTimestamp?.toDate ? createdAtTimestamp.toDate() : new Date(),
             } as Word;
         });
         
@@ -152,8 +153,10 @@ export default function ManageWordsPage() {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!authLoading) {
+      fetchData();
+    }
+  }, [authLoading, fetchData]);
 
   const filteredWords = React.useMemo(() => {
     switch (tab) {

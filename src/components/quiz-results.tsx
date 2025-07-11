@@ -24,6 +24,8 @@ export function QuizResults({ score, totalQuestions, quizId, user }: QuizResults
     
     useEffect(() => {
       const processScore = async () => {
+        if (!user) return; // Guard against missing user
+
         try {
             // Save the current user's score
             const newScore: Omit<QuizScore, 'id'> = {
@@ -76,7 +78,7 @@ export function QuizResults({ score, totalQuestions, quizId, user }: QuizResults
                             <TableHeader><TableRow><TableHead className="w-[50px]">Rank</TableHead><TableHead>Player</TableHead><TableHead className="text-right">Score</TableHead></TableRow></TableHeader>
                             <TableBody>
                                 {leaderboard.map((entry, index) => (
-                                    <TableRow key={entry.id} className={entry.userId === user.uid ? 'bg-primary/10' : ''}>
+                                    <TableRow key={entry.id} className={user && entry.userId === user.uid ? 'bg-primary/10' : ''}>
                                         <TableCell className="font-bold text-lg flex items-center justify-center">
                                             {index === 0 ? <Award className="h-6 w-6 text-yellow-500" /> :
                                             index === 1 ? <Award className="h-6 w-6 text-slate-400" /> :
