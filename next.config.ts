@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
   },
 
   output: 'export',
-  basePath: '/tamil-lexicon',
   trailingSlash: true,
   images: {
     remotePatterns: [
