@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useActionState, useEffect, useRef, useState, useTransition } from 'react';
@@ -97,7 +98,6 @@ export default function ManageLocationsPage() {
                         <Select name="parent">
                             <SelectTrigger><SelectValue placeholder="Select a parent location (optional)" /></SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">None (Top-Level)</SelectItem>
                                 {locations.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
