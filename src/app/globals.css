@@ -27,7 +27,6 @@ body {
     --border: 53 20% 85%;
     --input: 53 20% 85%;
     --ring: 45 100% 51%;
-    --radius: 0.5rem;
   }
   .dark {
     --background: 20 14.3% 4.1%;
@@ -59,6 +58,10 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  .prose img {
+    @apply rounded-lg;
+  }
+
   .prose {
       --tw-prose-body: theme(colors.foreground);
       --tw-prose-headings: theme(colors.primary.DEFAULT);
@@ -112,5 +115,4 @@ body {
     pointer-events: none;
     height: 0;
   }
-
 }

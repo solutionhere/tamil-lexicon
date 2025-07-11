@@ -3,6 +3,8 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import Image from '@tiptap/extension-image';
+import { useCallback } from 'react';
 import {
   Bold,
   Italic,
@@ -11,7 +13,8 @@ import {
   ListOrdered,
   Heading2,
   Code,
-  Quote
+  Quote,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
 import { Separator } from '@/components/ui/separator';
@@ -23,12 +26,20 @@ interface RichTextEditorProps {
 }
 
 const EditorToolbar = ({ editor }: { editor: any }) => {
+  const addImage = useCallback(() => {
+    const url = window.prompt('Enter image URL');
+
+    if (url) {
+      editor.chain().focus().setImage({ src: url }).run();
+    }
+  }, [editor]);
+
   if (!editor) {
     return null;
   }
 
   return (
-    <div className="flex items-center gap-1 rounded-t-md border border-input bg-transparent p-1">
+    <div className="flex flex-wrap items-center gap-1 rounded-t-md border border-input bg-transparent p-1">
       <Toggle
         size="sm"
         pressed={editor.isActive('heading', { level: 2 })}
@@ -89,6 +100,13 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
       >
         <Code className="h-4 w-4" />
       </Toggle>
+      <Separator orientation="vertical" className="h-8 w-[1px]" />
+       <Toggle
+        size="sm"
+        onPressedChange={addImage}
+      >
+        <ImageIcon className="h-4 w-4" />
+      </Toggle>
     </div>
   );
 };
@@ -107,11 +125,12 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your bl
       Placeholder.configure({
           placeholder,
       }),
+      Image,
     ],
     content: content,
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose-base m-5 focus:outline-none',
+        class: 'prose dark:prose-invert prose-sm sm:prose-base max-w-none m-5 focus:outline-none',
       },
     },
     onUpdate({ editor }) {
