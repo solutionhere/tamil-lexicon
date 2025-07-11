@@ -121,9 +121,13 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
       <Separator orientation="vertical" className="h-8 w-[1px]" />
       
       <AlertDialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
-          <Button asChild variant="ghost" size="icon" className="h-8 w-8" type="button" onClick={() => setIsImageDialogOpen(true)}>
+        <Toggle
+            size="sm"
+            pressed={isImageDialogOpen}
+            onPressedChange={() => setIsImageDialogOpen(true)}
+        >
             <ImageIcon className="h-4 w-4" />
-          </Button>
+        </Toggle>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Add Image URL</AlertDialogTitle>
@@ -172,7 +176,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your bl
     content: content,
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose-base max-w-none focus:outline-none',
+        class: 'prose dark:prose-invert prose-sm sm:prose-base max-w-none focus:outline-none p-5',
       },
     },
     onUpdate({ editor }) {
@@ -183,7 +187,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your bl
   return (
     <div className="flex flex-col justify-stretch rounded-md border border-input">
         <EditorToolbar editor={editor} />
-        <EditorContent editor={editor} className="min-h-[300px] p-5" />
+        <EditorContent editor={editor} className="min-h-[300px]" />
     </div>
   );
 }
