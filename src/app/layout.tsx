@@ -6,6 +6,7 @@ import { AuthProvider } from '@/context/auth-provider';
 export const metadata: Metadata = {
   title: 'Tamil Lexicon',
   description: 'A community-driven dictionary of Tamil slang and colloquialisms.',
+  icons: null,
 };
 
 export default function RootLayout({
