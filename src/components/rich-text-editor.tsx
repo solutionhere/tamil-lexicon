@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Bold,
   Italic,
@@ -19,6 +20,20 @@ import {
 import { Toggle } from '@/components/ui/toggle';
 import { Separator } from '@/components/ui/separator';
 import { Button } from './ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+
 
 interface RichTextEditorProps {
   content: string;
@@ -27,13 +42,16 @@ interface RichTextEditorProps {
 }
 
 const EditorToolbar = ({ editor }: { editor: any }) => {
-  const addImage = useCallback(() => {
-    const url = window.prompt('Enter image URL');
+  const [imageUrl, setImageUrl] = useState('');
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
 
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+  const addImage = useCallback(() => {
+    if (imageUrl) {
+      editor.chain().focus().setImage({ src: imageUrl }).run();
+      setImageUrl('');
+      setIsImageDialogOpen(false);
     }
-  }, [editor]);
+  }, [editor, imageUrl]);
 
   if (!editor) {
     return null;
@@ -102,15 +120,38 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
         <Code className="h-4 w-4" />
       </Toggle>
       <Separator orientation="vertical" className="h-8 w-[1px]" />
-       <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-        onClick={addImage}
-        type="button"
-      >
-        <ImageIcon className="h-4 w-4" />
-      </Button>
+      
+      <AlertDialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+        <AlertDialogTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8" type="button">
+            <ImageIcon className="h-4 w-4" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add Image URL</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter the full URL of the image you want to embed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex items-center space-x-2">
+            <div className="grid flex-1 gap-2">
+              <Label htmlFor="imageUrl" className="sr-only">Image URL</Label>
+              <Input
+                id="imageUrl"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://example.com/image.png"
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setImageUrl('')}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={addImage}>Add Image</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 };
