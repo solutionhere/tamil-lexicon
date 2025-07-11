@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 
 import { submissionSchema } from '@/lib/schemas';
-import { suggestTransliteration, suggestTamilWord } from '@/app/submit/ai-actions';
 import type { Category, Location, Word } from '@/lib/types';
 import { useAuth } from '@/context/auth-provider';
 
@@ -16,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Wand2, Loader2, CheckCircle } from 'lucide-react';
+import { Loader2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface WordFormProps {
@@ -38,8 +37,6 @@ export function WordForm({
 }: WordFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [isSuggestionPending, startSuggestionTransition] = useTransition();
-  const [isTamilSuggestionPending, startTamilSuggestionTransition] = useTransition();
   const [isFormPending, startFormTransition] = useTransition();
 
   const form = useForm<FormData>({
@@ -54,29 +51,6 @@ export function WordForm({
       location: initialData?.location || '',
     },
   });
-
-  const tamilWordValue = form.watch('tamilWord');
-  const transliterationValue = form.watch('transliteration');
-
-  const handleSuggestTransliteration = () => {
-    startSuggestionTransition(async () => {
-      const result = await suggestTransliteration(tamilWordValue);
-      if (result.transliteration) {
-        form.setValue('transliteration', result.transliteration, { shouldValidate: true });
-        toast({ title: 'Suggestion applied!', description: `Set transliteration to "${result.transliteration}".` });
-      }
-    });
-  };
-
-  const handleSuggestTamilWord = () => {
-    startTamilSuggestionTransition(async () => {
-      const result = await suggestTamilWord(transliterationValue);
-      if (result.tamilWord) {
-        form.setValue('tamilWord', result.tamilWord, { shouldValidate: true });
-        toast({ title: 'Suggestion applied!', description: `Set Tamil word to "${result.tamilWord}".` });
-      }
-    });
-  };
 
   const onSubmit = (data: FormData) => {
     const formData = new FormData();
@@ -126,14 +100,9 @@ export function WordForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tamil Word (in தமிழ் script)</FormLabel>
-                     <div className="flex gap-2">
-                        <FormControl>
-                          <Input placeholder="எ.கா: மச்சி" {...field} />
-                        </FormControl>
-                        <Button type="button" variant="outline" size="icon" onClick={handleSuggestTamilWord} disabled={!transliterationValue || isTamilSuggestionPending} aria-label="Suggest Tamil word">
-                          {isTamilSuggestionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-                        </Button>
-                      </div>
+                    <FormControl>
+                      <Input placeholder="எ.கா: மச்சி" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -144,14 +113,9 @@ export function WordForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>English Transliteration</FormLabel>
-                    <div className="flex gap-2">
-                      <FormControl>
-                        <Input placeholder="e.g., Machi" {...field} />
-                      </FormControl>
-                      <Button type="button" variant="outline" size="icon" onClick={handleSuggestTransliteration} disabled={!tamilWordValue || isSuggestionPending} aria-label="Suggest transliteration">
-                        {isSuggestionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-                      </Button>
-                    </div>
+                    <FormControl>
+                      <Input placeholder="e.g., Machi" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -1,23 +1,14 @@
 'use server';
 
-import { suggestTransliteration as suggestTransliterationFlow } from '@/ai/flows/suggest-transliteration';
+// AI functionality has been removed.
+// These functions are kept to prevent import errors but are no longer functional.
 
 export async function suggestTransliteration(tamilWord: string): Promise<{ transliteration: string }> {
-    if (!tamilWord) return { transliteration: '' };
-    
-    try {
-        const result = await suggestTransliterationFlow({ tamilWord });
-        return { transliteration: result.transliteration };
-    } catch (error) {
-        console.error("AI transliteration failed:", error);
-        // Fallback or error handling
-        return { transliteration: '' };
-    }
+    console.warn("AI transliteration is disabled.");
+    return { transliteration: '' };
 }
 
-// Placeholder for reverse transliteration - would need a new Genkit flow.
 export async function suggestTamilWord(englishWord: string): Promise<{ tamilWord: string }> {
-    if (!englishWord) return { tamilWord: '' };
-    // This would be another Genkit flow call in a real implementation.
+    console.warn("AI reverse transliteration is disabled.");
     return { tamilWord: '' };
 }
