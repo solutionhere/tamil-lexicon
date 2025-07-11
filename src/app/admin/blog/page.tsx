@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import type { BlogPost } from '@/lib/types';
 import { Button } from '@/components/ui/button';
