@@ -8,6 +8,7 @@ export const submissionSchema = z.object({
   exampleEnglish: z.string().min(1, 'English example is required.'),
   category: z.string().min(1, 'Please select a category.'),
   location: z.string().min(1, 'Please select a location.'),
+  tags: z.string().optional(), // Added tags field
   userId: z.string().optional(),
 });
 

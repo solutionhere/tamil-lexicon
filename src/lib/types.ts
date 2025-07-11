@@ -22,6 +22,7 @@ export type Word = {
   pronunciation: string;
   category: string; // category id
   location: string; // location id
+  tags?: string[]; // New field for tags
   status: 'published' | 'pending';
   isFlagged?: boolean;
   submittedBy?: string; // User ID of the submitter

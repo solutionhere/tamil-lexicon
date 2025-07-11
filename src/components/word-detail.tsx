@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Volume2, BookOpen, MapPin, Flag, Loader2, AlertCircle, Link as LinkIcon } from 'lucide-react';
+import { Volume2, BookOpen, MapPin, Flag, Loader2, AlertCircle, Link as LinkIcon, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { flagWordAction } from '@/app/words/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -33,9 +33,10 @@ interface WordDetailProps {
   word: Word | null;
   categories: Category[];
   locations: Location[];
+  relatedWords?: Word[];
 }
 
-export function WordDetail({ word, categories, locations }: WordDetailProps) {
+export function WordDetail({ word, categories, locations, relatedWords = [] }: WordDetailProps) {
   const { toast } = useToast();
   
   const [state, formAction] = useActionState(flagWordAction, { message: '' });
@@ -125,6 +126,19 @@ export function WordDetail({ word, categories, locations }: WordDetailProps) {
             </div>
             <Separator />
             <div className="space-y-4">
+               {word.tags && word.tags.length > 0 && (
+                <div className="flex items-start gap-4">
+                    <div className="flex shrink-0 items-center gap-2 text-muted-foreground pt-1">
+                        <Tag size={20} />
+                        <span className="font-headline font-semibold">Tags</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {word.tags.map(tag => (
+                            <Badge key={tag} variant="outline">{tag}</Badge>
+                        ))}
+                    </div>
+                </div>
+               )}
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Volume2 size={20} />
@@ -140,6 +154,21 @@ export function WordDetail({ word, categories, locations }: WordDetailProps) {
                 <p className="text-base md:text-lg">This term is commonly used in {location?.name}.</p>
               </div>
             </div>
+             <Separator />
+              {relatedWords.length > 0 && (
+                <div>
+                    <h4 className="mb-2 font-headline text-lg font-semibold">Related Words</h4>
+                    <div className="flex flex-wrap gap-2">
+                        {relatedWords.map(relatedWord => (
+                            <Button key={relatedWord.id} variant="link" asChild className="p-0 h-auto">
+                                <Link href={`/word/${relatedWord.transliteration}`}>
+                                    {relatedWord.tamil}
+                                </Link>
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+              )}
              <Separator />
              <div className="pt-2">
                 <form action={formAction}>

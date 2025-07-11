@@ -11,6 +11,11 @@ export type SubmissionState = {
   success: boolean;
 };
 
+const processTags = (tagsString?: string): string[] => {
+  if (!tagsString) return [];
+  return tagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+}
+
 export async function submitWord(
   prevState: SubmissionState,
   formData: FormData
@@ -26,7 +31,7 @@ export async function submitWord(
   }
   
   try {
-    const { exampleTamil, exampleEnglish, tamilWord, ...rest } = validatedFields.data;
+    const { exampleTamil, exampleEnglish, tamilWord, tags, ...rest } = validatedFields.data;
     const wordData = {
         ...rest,
         tamil: tamilWord,
@@ -34,6 +39,7 @@ export async function submitWord(
             tamil: exampleTamil,
             english: exampleEnglish
         },
+        tags: processTags(tags),
         status: 'pending',
         isFlagged: false,
         createdAt: new Date(),

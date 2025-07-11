@@ -49,6 +49,7 @@ export function WordForm({
       exampleEnglish: initialData?.example?.english || '',
       category: initialData?.category || '',
       location: initialData?.location || '',
+      tags: initialData?.tags?.join(', ') || '',
     },
   });
 
@@ -203,6 +204,21 @@ export function WordForm({
                 )}
               />
             </div>
+
+             <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags (comma-separated)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., greeting, friendly, slang" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
           </CardContent>
           <CardFooter>
             <Button type="submit" className="w-full" disabled={isFormPending}>

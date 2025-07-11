@@ -17,6 +17,11 @@ export type WordFormState = {
   success: boolean;
 };
 
+const processTags = (tagsString?: string): string[] => {
+  if (!tagsString) return [];
+  return tagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+}
+
 export async function approveWordAction(
   prevState: ActionState,
   formData: FormData
@@ -99,7 +104,7 @@ export async function updateWordAction(
     return { errors: validatedFields.error.errors, message: 'Validation failed.', success: false };
   }
   
-  const { wordId, exampleTamil, exampleEnglish, tamilWord, ...rest } = validatedFields.data;
+  const { wordId, exampleTamil, exampleEnglish, tamilWord, tags, ...rest } = validatedFields.data;
 
   try {
     const wordData = {
@@ -109,6 +114,7 @@ export async function updateWordAction(
             tamil: exampleTamil,
             english: exampleEnglish
         },
+        tags: processTags(tags),
     };
     await updateDoc(doc(db, 'words', wordId), wordData);
     revalidatePath('/admin/words');
@@ -133,7 +139,7 @@ export async function addWordAction(
   }
 
   try {
-    const { exampleTamil, exampleEnglish, tamilWord, ...rest } = validatedFields.data;
+    const { exampleTamil, exampleEnglish, tamilWord, tags, ...rest } = validatedFields.data;
     const wordData = {
         ...rest,
         tamil: tamilWord,
@@ -141,6 +147,7 @@ export async function addWordAction(
             tamil: exampleTamil,
             english: exampleEnglish
         },
+        tags: processTags(tags),
         status: 'published',
         isFlagged: false,
         createdAt: new Date(),

@@ -22,8 +22,22 @@ async function getWordData(slug: string) {
     const word = wordsSnapshot.empty ? null : { id: wordsSnapshot.docs[0].id, ...wordsSnapshot.docs[0].data() } as Word;
     const categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Category[];
     const locations = locationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Location[];
+    
+    let relatedWords: Word[] = [];
+    if (word?.tags && word.tags.length > 0) {
+        const relatedWordsQuery = query(
+            collection(db, 'words'), 
+            where('tags', 'array-contains-any', word.tags),
+            where('status', '==', 'published'),
+            where('id', '!=', word.id),
+            limit(5)
+        );
+        const relatedWordsSnapshot = await getDocs(relatedWordsQuery);
+        relatedWords = relatedWordsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Word));
+    }
 
-    return { word, categories, locations };
+
+    return { word, categories, locations, relatedWords };
 }
 
 // Generate static pages for each word at build time for better SEO
@@ -47,12 +61,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title: `${word.tamil} (${word.transliteration}) - Tamil Lexicon`,
     description: word.definition,
-    keywords: [word.tamil, word.transliteration, 'tamil slang', 'tamil lexicon'],
+    keywords: [word.tamil, word.transliteration, ...(word.tags || []), 'tamil slang', 'tamil lexicon'],
   };
 }
 
 export default async function WordPage({ params }: { params: { slug: string } }) {
-  const { word, categories, locations } = await getWordData(decodeURIComponent(params.slug));
+  const { word, categories, locations, relatedWords } = await getWordData(decodeURIComponent(params.slug));
 
   if (!word) {
     notFound();
@@ -69,7 +83,7 @@ export default async function WordPage({ params }: { params: { slug: string } })
                     </Link>
                 </Button>
             </div>
-            <WordDetail word={word} categories={categories} locations={locations} />
+            <WordDetail word={word} categories={categories} locations={locations} relatedWords={relatedWords} />
         </div>
     </div>
   );
