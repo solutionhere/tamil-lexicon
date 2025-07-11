@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
 import { Separator } from '@/components/ui/separator';
+import { Button } from './ui/button';
 
 interface RichTextEditorProps {
   content: string;
@@ -101,12 +102,15 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
         <Code className="h-4 w-4" />
       </Toggle>
       <Separator orientation="vertical" className="h-8 w-[1px]" />
-       <Toggle
-        size="sm"
-        onPressedChange={addImage}
+       <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={addImage}
+        type="button"
       >
         <ImageIcon className="h-4 w-4" />
-      </Toggle>
+      </Button>
     </div>
   );
 };

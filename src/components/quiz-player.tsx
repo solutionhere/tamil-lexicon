@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import type { Quiz, QuizQuestion, User } from '@/lib/types';
+import type { Quiz, User } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -26,22 +26,6 @@ export function QuizPlayer({ quiz, user }: QuizPlayerProps) {
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
 
-  useEffect(() => {
-    if (isFinished || answerState !== 'unanswered') return;
-    if (currentQuestion) {
-        setTimeLeft(currentQuestion.timeLimitSeconds);
-    }
-  }, [currentQuestionIndex, isFinished, answerState, currentQuestion]);
-
-  useEffect(() => {
-    if (timeLeft > 0 && answerState === 'unanswered' && !isFinished) {
-      const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
-      return () => clearInterval(timer);
-    } else if (timeLeft === 0 && answerState === 'unanswered' && !isFinished) {
-      handleAnswer(-1); // -1 indicates timeout
-    }
-  }, [timeLeft, answerState, isFinished, handleAnswer]);
-  
   const handleNextQuestion = useCallback(() => {
       if (currentQuestionIndex < quiz.questions.length - 1) {
           setCurrentQuestionIndex(prev => prev + 1);
@@ -67,6 +51,25 @@ export function QuizPlayer({ quiz, user }: QuizPlayerProps) {
       handleNextQuestion();
     }, 2000); // Wait 2 seconds before moving to the next question
   }, [answerState, currentQuestion, handleNextQuestion]);
+
+  useEffect(() => {
+    if (isFinished || answerState !== 'unanswered' || !currentQuestion) return;
+    
+    setTimeLeft(currentQuestion.timeLimitSeconds);
+    
+    const timer = setInterval(() => {
+        setTimeLeft(t => {
+            if (t <= 1) {
+                clearInterval(timer);
+                handleAnswer(-1); // Timeout
+                return 0;
+            }
+            return t - 1;
+        });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [currentQuestionIndex, isFinished, answerState, currentQuestion, handleAnswer]);
   
   if (isFinished) {
       return <QuizResults score={score} totalQuestions={quiz.questions.length} quizId={quiz.id} user={user} />;
