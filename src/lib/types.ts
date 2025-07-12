@@ -28,7 +28,7 @@ export type Word = {
   status: 'published' | 'pending';
   isFlagged?: boolean;
   userId?: string;
-  createdAt: Timestamp | Date;
+  createdAt: Timestamp;
 };
 
 export type QuizQuestion = {
@@ -43,7 +43,7 @@ export type Quiz = {
     title: string;
     questions: QuizQuestion[];
     status: 'draft' | 'live' | 'completed';
-    scheduledFor?: Date;
+    scheduledFor?: Timestamp;
 };
 
 export type QuizScore = {
@@ -52,7 +52,7 @@ export type QuizScore = {
     userId: string;
     userName: string;
     score: number;
-    createdAt: Timestamp | Date;
+    createdAt: Timestamp;
 };
 
 export type BlogPost = {
@@ -60,7 +60,8 @@ export type BlogPost = {
   slug: string;
   title: string;
   content: string;
-  publishedAt: string; // ISO date string, but from Firestore Timestamp
+  publishedAt: Timestamp | string; // Can be string on client, Timestamp from server
+  status?: 'published' | 'draft';
   author: {
     name: string;
     avatarUrl?: string;
