@@ -12,6 +12,13 @@ import type { BlogPost } from '@/lib/types';
 // Required for static export
 export const dynamicParams = false;
 
+export async function generateStaticParams() {
+    const snapshot = await getDocs(query(collection(db, 'blogPosts'), where('status', '==', 'published')));
+    return snapshot.docs.map(doc => ({
+        slug: doc.data().slug,
+    }));
+}
+
 async function getPost(slug: string): Promise<BlogPost | null> {
     const q = query(collection(db, 'blogPosts'), where('slug', '==', slug), limit(1));
     const snapshot = await getDocs(q);
