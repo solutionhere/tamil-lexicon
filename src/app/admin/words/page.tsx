@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useActionState, useTransition } from 'react';
+import React, { useState, useEffect, useActionState, useTransition, useCallback } from 'react';
 import { useFormStatus } from 'react-dom';
 import Link from 'next/link';
 import type { Word, Category } from '@/lib/types';
@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlusCircle, Edit, Trash2, CheckCircle, XCircle, Loader2, Eye } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, CheckCircle, XCircle, Loader2, Eye, Ban } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy, type Timestamp } from 'firebase/firestore';
 
@@ -128,7 +128,11 @@ export default function ManageWordsPage() {
   const [tab, setTab] = useState('all');
   const [isPending, startTransition] = useTransition();
 
-  const fetchData = React.useCallback(() => {
+  const fetchData = useCallback(() => {
+    if (!isAdmin) {
+        setLoading(false);
+        return;
+    };
     startTransition(async () => {
         setLoading(true);
         const wordsQuery = query(collection(db, "words"), orderBy('createdAt', 'desc'));
@@ -141,7 +145,6 @@ export default function ManageWordsPage() {
             return {
                 id: doc.id,
                 ...data,
-                // Safely convert Firestore Timestamp to Date
                 createdAt: createdAtTimestamp?.toDate ? createdAtTimestamp.toDate() : new Date(),
             } as Word;
         });
@@ -150,7 +153,7 @@ export default function ManageWordsPage() {
         setCategories(categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category)));
         setLoading(false);
     });
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -171,6 +174,10 @@ export default function ManageWordsPage() {
     return (
       <Card><CardHeader><Skeleton className="h-8 w-48" /></CardHeader><CardContent className="pt-6"><Skeleton className="h-64 w-full" /></CardContent></Card>
     );
+  }
+
+  if (!isAdmin) {
+    return <div className="flex items-center justify-center"><div className="container mx-auto max-w-md px-4 py-12 text-center"><Card><CardHeader className="items-center"><div className="mx-auto bg-destructive/10 p-3 rounded-full w-fit mb-2"><Ban className="h-8 w-8 text-destructive" /></div><CardTitle>Access Denied</CardTitle><CardDescription>You do not have permission to view this page.</CardDescription></CardHeader><CardContent><Button asChild><Link href="/">Back to Lexicon</Link></Button></CardContent></Card></div></div>;
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useActionState, useEffect, useState, useTransition } from 'react';
+import React, { useActionState, useEffect, useState, useTransition, useCallback } from 'react';
 import { useFormStatus } from 'react-dom';
 import type { Quiz } from '@/lib/types';
 import Link from 'next/link';
@@ -57,7 +57,7 @@ export default function AdminQuizzesPage() {
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
 
-  const fetchQuizzes = React.useCallback(() => {
+  const fetchQuizzes = useCallback(() => {
     if (!isAdmin) {
         setLoading(false);
         return;
@@ -83,6 +83,10 @@ export default function AdminQuizzesPage() {
         <Card><CardHeader><Skeleton className="h-8 w-48" /><Skeleton className="h-4 w-full max-w-md" /></CardHeader><CardContent className="pt-6"><Skeleton className="h-48 w-full" /></CardContent></Card>
       </div>
     );
+  }
+
+  if (!isAdmin) {
+    return <div className="flex items-center justify-center"><div className="container mx-auto max-w-md px-4 py-12 text-center"><Card><CardHeader className="items-center"><div className="mx-auto bg-destructive/10 p-3 rounded-full w-fit mb-2"><Ban className="h-8 w-8 text-destructive" /></div><CardTitle>Access Denied</CardTitle><CardDescription>You do not have permission to view this page.</CardDescription></CardHeader><CardContent><Button asChild><Link href="/">Back to Lexicon</Link></Button></CardContent></Card></div></div>;
   }
 
   return (

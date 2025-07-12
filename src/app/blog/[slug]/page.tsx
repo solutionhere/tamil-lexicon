@@ -9,6 +9,8 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import type { BlogPost } from '@/lib/types';
 
+// Required for static export
+export const dynamicParams = false;
 
 async function getPost(slug: string): Promise<BlogPost | null> {
     const q = query(collection(db, 'blogPosts'), where('slug', '==', slug), limit(1));
@@ -26,12 +28,6 @@ async function getPost(slug: string): Promise<BlogPost | null> {
     } as BlogPost;
 }
 
-export async function generateStaticParams() {
-  const snapshot = await getDocs(collection(db, 'blogPosts'));
-  return snapshot.docs.map(doc => ({
-    slug: doc.data().slug,
-  }));
-}
 
 function stripHtml(html: string){
     if (typeof window === 'undefined') {

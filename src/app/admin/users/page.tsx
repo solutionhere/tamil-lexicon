@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useActionState, useEffect, useRef, useState, useTransition } from 'react';
+import React, { useActionState, useEffect, useRef, useState, useTransition, useCallback } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useAuth } from '@/context/auth-provider';
 import { useToast } from '@/hooks/use-toast';
@@ -10,9 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, UserPlus, Crown, Loader2 } from 'lucide-react';
+import { Trash2, UserPlus, Crown, Loader2, Ban } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import Link from 'next/link';
 
 type AdminUser = {
     id: string;
@@ -48,7 +49,7 @@ export default function ManageAdminsPage() {
     const [loading, setLoading] = useState(true);
     const [isPending, startTransition] = useTransition();
 
-    const fetchAdmins = React.useCallback(() => {
+    const fetchAdmins = useCallback(() => {
         if (!isSuperAdmin) {
             setLoading(false);
             return;
@@ -89,6 +90,10 @@ export default function ManageAdminsPage() {
 
     if (authLoading) {
         return <div className="grid gap-8"><Card><CardHeader><Skeleton className="h-8 w-48" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card></div>
+    }
+
+    if (!isSuperAdmin) {
+         return <div className="flex items-center justify-center"><div className="container mx-auto max-w-md px-4 py-12 text-center"><Card><CardHeader className="items-center"><div className="mx-auto bg-destructive/10 p-3 rounded-full w-fit mb-2"><Ban className="h-8 w-8 text-destructive" /></div><CardTitle>Access Denied</CardTitle><CardDescription>You do not have permission to view this page.</CardDescription></CardHeader><CardContent><Button asChild><Link href="/">Back to Lexicon</Link></Button></CardContent></Card></div></div>;
     }
     
     return (
