@@ -10,13 +10,6 @@ import type { Quiz } from '@/lib/types';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-export async function generateStaticParams() {
-  const snapshot = await getDocs(collection(db, 'quizzes'));
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-  }));
-}
-
 export default function EditQuizPage({ params }: { params: { id: string } }) {
     const [quiz, setQuiz] = useState<Quiz | null>(null);
     const [loading, setLoading] = useState(true);
