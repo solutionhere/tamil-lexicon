@@ -153,8 +153,10 @@ export default function ManageWordsPage() {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!authLoading) {
+      fetchData();
+    }
+  }, [authLoading, fetchData]);
 
   const filteredWords = React.useMemo(() => {
     switch (tab) {
