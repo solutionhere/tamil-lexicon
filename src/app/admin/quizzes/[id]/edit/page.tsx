@@ -7,8 +7,15 @@ import { QuizCreationForm } from '@/components/quiz-creation-form';
 import { updateQuizAction } from '../../actions';
 import type { QuizCreationData } from '../../actions';
 import type { Quiz } from '@/lib/types';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+
+export async function generateStaticParams() {
+  const snapshot = await getDocs(collection(db, 'quizzes'));
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+  }));
+}
 
 export default function EditQuizPage({ params }: { params: { id: string } }) {
     const [quiz, setQuiz] = useState<Quiz | null>(null);

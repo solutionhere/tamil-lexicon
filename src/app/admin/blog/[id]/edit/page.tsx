@@ -5,9 +5,16 @@ import { notFound } from 'next/navigation';
 import { updatePostAction } from '../../actions';
 import { BlogPostForm } from '@/components/blog-post-form';
 import type { BlogPost } from '@/lib/types';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+
+export async function generateStaticParams() {
+  const snapshot = await getDocs(collection(db, 'blogPosts'));
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+  }));
+}
 
 export default function EditPostPage({ params }: { params: { id: string } }) {
   const [post, setPost] = useState<BlogPost | null>(null);

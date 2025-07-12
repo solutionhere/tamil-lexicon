@@ -9,6 +9,13 @@ import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
+export async function generateStaticParams() {
+  const snapshot = await getDocs(collection(db, 'words'));
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+  }));
+}
+
 async function getEditData(id: string) {
     const wordRef = doc(db, 'words', id);
     const categoriesQuery = collection(db, 'categories');
@@ -27,7 +34,7 @@ async function getEditData(id: string) {
     return { word, categories, locations };
 }
 
-export default function EditWordPage({ params }: { params: { id: string } }) {
+export default function EditWordPage({ params }: { params: { id:string } }) {
   const [data, setData] = useState<{ word: Word | null; categories: Category[]; locations: Location[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
