@@ -28,17 +28,7 @@ export function WordListItem({ word, isSelected, onClick }: WordListItemProps) {
       }}
     >
       <div className="flex w-full items-baseline justify-between">
-          {word.slug ? (
-            <Link 
-              href={`/word/${word.slug}`} 
-              onClick={(e) => e.stopPropagation()} 
-              className="text-primary font-headline text-lg font-semibold hover:underline"
-            >
-              {word.tamil}
-            </Link>
-          ) : (
-            <h3 className="font-headline text-lg font-semibold text-primary">{word.tamil}</h3>
-          )}
+          <h3 className="font-headline text-lg font-semibold text-primary">{word.tamil}</h3>
           <p className="text-sm text-muted-foreground">{word.transliteration}</p>
       </div>
       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground pointer-events-none">
