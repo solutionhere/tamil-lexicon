@@ -10,17 +10,21 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, limit, DocumentData } from 'firebase/firestore';
 
 async function getWordData(slug: string) {
-    // First, try to query by the new 'slug' field
-    const slugQuery = query(collection(db, 'words'), where('slug', '==', slug), limit(1));
+    const lowercaseSlug = slug.toLowerCase();
+    // First, try to query by the 'slug' field which should be lowercase
+    const slugQuery = query(collection(db, 'words'), where('slug', '==', lowercaseSlug), limit(1));
     let wordsSnapshot = await getDocs(slugQuery);
 
-    // If no word is found by slug, fall back to transliteration for older data
+    // If no word is found by slug, fall back to a case-insensitive-like query on transliteration for older data
     if (wordsSnapshot.empty) {
         const translitQuery = query(collection(db, 'words'), where('transliteration', '==', slug), limit(1));
         wordsSnapshot = await getDocs(translitQuery);
     }
     
-    const word = wordsSnapshot.empty ? null : { id: wordsSnapshot.docs[0].id, ...wordsSnapshot.docs[0].data() } as Word;
+    const wordDoc = wordsSnapshot.docs[0];
+    if (!wordDoc) return { word: null, categories: [], locations: [], relatedWords: [] };
+    
+    const word = { id: wordDoc.id, ...wordDoc.data() } as Word;
 
     const categoriesQuery = collection(db, 'categories');
     const locationsQuery = collection(db, 'locations');
