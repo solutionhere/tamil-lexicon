@@ -8,10 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import type { BlogPost } from '@/lib/types';
+import type { Timestamp } from 'firebase/firestore';
 
-// Required for static export
-export const dynamicParams = false;
-
+// Let Next.js know about all the possible blog posts at build time
 export async function generateStaticParams() {
     const snapshot = await getDocs(query(collection(db, 'blogPosts'), where('status', '==', 'published')));
     return snapshot.docs.map(doc => ({
@@ -27,22 +26,21 @@ async function getPost(slug: string): Promise<BlogPost | null> {
     }
     const doc = snapshot.docs[0];
     const data = doc.data();
+    // Ensure timestamp is converted to a serializable format (ISO string)
+    const publishedAt = (data.publishedAt as Timestamp).toDate().toISOString();
+
     return {
         id: doc.id,
         ...data,
-        // Convert Firestore Timestamp to string
-        publishedAt: data.publishedAt.toDate().toISOString(),
+        publishedAt: publishedAt,
     } as BlogPost;
 }
 
 
 function stripHtml(html: string){
-    if (typeof window === 'undefined') {
-        // Simple server-side stripping
-        return html.replace(/<[^>]*>?/gm, '');
-    }
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.textContent || "";
+    if (!html) return '';
+    // This simple regex is safe for server-side execution.
+    return html.replace(/<[^>]*>?/gm, '');
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -100,7 +98,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                         <span>{post.author.name}</span>
                     </div>
                     <span>•</span>
-                    <time dateTime={post.publishedAt}>
+                    <time dateTime={post.publishedAt as string}>
                         {format(new Date(post.publishedAt), 'MMMM d, yyyy')}
                     </time>
                 </div>
