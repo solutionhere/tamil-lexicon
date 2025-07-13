@@ -1,4 +1,5 @@
-"use client";
+
+'use client';
 
 import React, { useState, useMemo, useEffect, useTransition, useCallback } from 'react';
 import type { Word, Category, Location } from '@/lib/types';
@@ -45,7 +46,7 @@ export function LexiconShell({ initialWords, categories, locations }: LexiconShe
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [selectedWord, setSelectedWord] = useState<Word | null>(initialWords[0] || null);
+  const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   
   const [usage, setUsage] = useState<Usage>({ count: 0, date: '' });
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -56,25 +57,27 @@ export function LexiconShell({ initialWords, categories, locations }: LexiconShe
     startFetchingWords(async () => {
       let q: Query<DocumentData> = query(collection(db, 'words'), where('status', '==', 'published'));
       
-      // The search query is case-sensitive, so we search for the lowercase version
-      if (debouncedSearchQuery) {
-          const queryLower = debouncedSearchQuery.toLowerCase();
-          q = query(q, where('transliteration', '>=', queryLower), where('transliteration', '<=', queryLower + '\uf8ff'), limit(25));
-      }
-      
-      if (selectedCategories.length > 0) {
-        q = query(q, where('category', 'in', selectedCategories));
-      }
-      
-      if (selectedLocation) {
-        // This query requires a composite index in Firestore.
-        // The error message in the browser console will provide a direct link to create it.
-        q = query(q, where('location', '==', selectedLocation));
+      const hasFilters = debouncedSearchQuery || selectedCategories.length > 0 || selectedLocation;
+
+      if (hasFilters) {
+        if (debouncedSearchQuery) {
+            const queryLower = debouncedSearchQuery.toLowerCase();
+            // This is a simple prefix search. For full-text search, a dedicated service like Algolia or Typesense would be better.
+            q = query(q, where('transliteration', '>=', queryLower), where('transliteration', '<=', queryLower + '\uf8ff'), limit(25));
+        }
+        
+        if (selectedCategories.length > 0) {
+          q = query(q, where('category', 'in', selectedCategories));
+        }
+        
+        if (selectedLocation) {
+          q = query(q, where('location', '==', selectedLocation));
+        }
+      } else {
+        // Default query: Fetch the 50 most recent words if no filters are active.
+        q = query(q, orderBy('createdAt', 'desc'), limit(50));
       }
 
-      if (!debouncedSearchQuery) {
-          q = query(q, orderBy('createdAt', 'desc'), limit(50));
-      }
 
       try {
         const snapshot = await getDocs(q);
@@ -88,9 +91,9 @@ export function LexiconShell({ initialWords, categories, locations }: LexiconShe
            } as Word;
         });
         setWords(fetchedWords);
-        if (fetchedWords.length > 0) {
+        if (fetchedWords.length > 0 && !selectedWord) {
             setSelectedWord(fetchedWords[0]);
-        } else {
+        } else if (fetchedWords.length === 0) {
             setSelectedWord(null);
         }
       } catch (error) {
@@ -99,7 +102,7 @@ export function LexiconShell({ initialWords, categories, locations }: LexiconShe
         setSelectedWord(null);
       }
     });
-  }, [debouncedSearchQuery, selectedCategories, selectedLocation]);
+  }, [debouncedSearchQuery, selectedCategories, selectedLocation, selectedWord]);
 
   useEffect(() => {
       fetchWords();
@@ -140,19 +143,16 @@ export function LexiconShell({ initialWords, categories, locations }: LexiconShe
   };
   
   const handleWordSelect = (word: Word) => {
-    // If the user is logged in, they have unlimited access.
     if (user) {
       setSelectedWord(word);
       return;
     }
 
-    // if same word is clicked, just make sure it's selected and do nothing else.
     if (word.id === selectedWord?.id) {
         setSelectedWord(word);
         return;
     }
 
-    // For guests, check the usage count when selecting a NEW word.
     if (usage.count >= SEARCH_LIMIT) {
       setShowLoginPrompt(true);
     } else {
@@ -179,7 +179,7 @@ export function LexiconShell({ initialWords, categories, locations }: LexiconShe
     return words.filter(word => 
         word.id !== selectedWord.id &&
         word.tags?.some(tag => selectedWord.tags?.includes(tag))
-    ).slice(0, 5); // Limit to 5 related words
+    ).slice(0, 5);
   }, [selectedWord, words]);
 
 
