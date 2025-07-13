@@ -165,7 +165,7 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
               </div>
             </div>
              <Separator />
-              {relatedWords.length > 0 && (
+              {word.slug && relatedWords && relatedWords.length > 0 && (
                 <div>
                     <h4 className="mb-2 font-headline text-lg font-semibold">Related Words</h4>
                     <div className="flex flex-wrap gap-2">
