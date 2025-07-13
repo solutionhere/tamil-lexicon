@@ -98,7 +98,25 @@ export default function WordPage() {
     }
 
     if (!word) {
-        notFound();
+        // Since this is client-side, we can't use the notFound() function from next/navigation
+        // in the same way. We'll render a not found message.
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                 <div className="container mx-auto max-w-md px-4 py-12 text-center">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>404 - Word Not Found</CardTitle>
+                            <CardDescription>The word you are looking for does not exist.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button asChild>
+                                <Link href="/">Back to Lexicon</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                 </div>
+            </div>
+        )
     }
 
     return (
@@ -116,9 +134,4 @@ export default function WordPage() {
             </div>
         </div>
     );
-}
-
-export async function generateStaticParams() {
-    // Return an empty array to indicate that all word pages will be dynamically rendered on the client.
-    return [];
 }
