@@ -39,7 +39,7 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [selectedWord, setSelectedWord] = useState<Word | null>(words[0] || null);
+  const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   
   const [usage, setUsage] = useState<Usage>({ count: 0, date: '' });
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -67,6 +67,12 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
     
     setUsage(storedUsage);
   }, [user]); // Rerun if user logs in/out
+
+  useEffect(() => {
+    if (words.length > 0 && !selectedWord) {
+      setSelectedWord(words[0]);
+    }
+  }, [words, selectedWord]);
 
 
   const filteredWords = useMemo(() => {
