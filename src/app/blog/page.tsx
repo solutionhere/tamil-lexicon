@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import type { BlogPost } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, type Timestamp } from 'firebase/firestore';
 
 
 async function getBlogPosts(): Promise<BlogPost[]> {
@@ -13,11 +13,12 @@ async function getBlogPosts(): Promise<BlogPost[]> {
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => {
         const data = doc.data();
+        // Convert Firestore Timestamp to a serializable string
+        const publishedAt = (data.publishedAt as Timestamp).toDate().toISOString();
         return {
           id: doc.id,
           ...data,
-          // Convert Firestore Timestamp to string
-          publishedAt: data.publishedAt.toDate().toISOString(),
+          publishedAt,
         } as BlogPost;
     });
 }

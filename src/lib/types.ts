@@ -28,7 +28,7 @@ export type Word = {
   status: 'published' | 'pending';
   isFlagged?: boolean;
   userId?: string;
-  createdAt: Timestamp | string;
+  createdAt: Timestamp | string; // Can be string on client
 };
 
 export type QuizQuestion = {
@@ -52,7 +52,7 @@ export type QuizScore = {
     userId: string;
     userName: string;
     score: number;
-    createdAt: Timestamp;
+    createdAt: Timestamp | string; // Can be string on client
 };
 
 export type BlogPost = {
