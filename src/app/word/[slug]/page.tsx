@@ -11,15 +11,10 @@ import { collection, getDocs, query, where, limit, DocumentData } from 'firebase
 
 async function getWordData(slug: string) {
     const lowercaseSlug = slug.toLowerCase();
-    // First, try to query by the 'slug' field which should be lowercase
-    const slugQuery = query(collection(db, 'words'), where('slug', '==', lowercaseSlug), limit(1));
-    let wordsSnapshot = await getDocs(slugQuery);
-
-    // If no word is found by slug, fall back to a case-insensitive-like query on transliteration for older data
-    if (wordsSnapshot.empty) {
-        const translitQuery = query(collection(db, 'words'), where('transliteration', '==', slug), limit(1));
-        wordsSnapshot = await getDocs(translitQuery);
-    }
+    
+    // Primary query against the reliable, lowercase 'slug' field.
+    const q = query(collection(db, 'words'), where('slug', '==', lowercaseSlug), limit(1));
+    const wordsSnapshot = await getDocs(q);
     
     const wordDoc = wordsSnapshot.docs[0];
     if (!wordDoc) return { word: null, categories: [], locations: [], relatedWords: [] };
@@ -57,7 +52,7 @@ async function getWordData(slug: string) {
 
 // Generate dynamic metadata for each page for better SEO
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const { word } = await getWordData(decodeURIComponent(params.slug));
+  const { word } = await getWordData(params.slug);
 
   if (!word) {
     return {
@@ -73,7 +68,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function WordPage({ params }: { params: { slug: string } }) {
-  const { word, categories, locations, relatedWords } = await getWordData(decodeURIComponent(params.slug));
+  const { word, categories, locations, relatedWords } = await getWordData(params.slug);
 
   if (!word) {
     notFound();

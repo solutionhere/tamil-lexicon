@@ -12,7 +12,7 @@ import type { BlogPost } from '@/lib/types';
 import type { Timestamp } from 'firebase/firestore';
 
 async function getPost(slug: string): Promise<BlogPost | null> {
-    const q = query(collection(db, 'blogPosts'), where('slug', '==', slug), where('status', '==', 'published'), limit(1));
+    const q = query(collection(db, 'blogPosts'), where('slug', '==', slug.toLowerCase()), where('status', '==', 'published'), limit(1));
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
