@@ -97,21 +97,19 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
         <Card className="border-none shadow-none">
           <CardHeader className="px-0">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div>
-                  <h2 className="font-headline text-4xl font-bold text-primary">
-                      {word.tamil}
-                  </h2>
-                  <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
-                </div>
-                {word.slug && (
-                    <Button variant="ghost" size="icon" asChild title="View word page">
-                        <Link href={`/word/${word.slug}`}>
-                            <LinkIcon className="h-5 w-5" />
+              <div>
+                <h2 className="font-headline text-4xl font-bold text-primary">
+                    {word.tamil}
+                </h2>
+                <div className="flex items-center gap-2">
+                    <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
+                    {word.slug && (
+                        <Link href={`/word/${word.slug}`} title="View word page" className="text-muted-foreground hover:text-primary">
+                            <LinkIcon className="h-4 w-4" />
                             <span className="sr-only">View word page</span>
                         </Link>
-                    </Button>
-                )}
+                    )}
+                </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {category && <Badge variant="secondary">{category.name}</Badge>}
