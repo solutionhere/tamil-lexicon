@@ -6,6 +6,11 @@ export async function generateStaticParams() {
   return [];
 }
 
+// These settings are required to make dynamic routes work with `output: 'export'`
+// when you want them to be client-side rendered.
+export const dynamicParams = true;
+export const dynamic = 'force-dynamic';
+
 export default function BlogPostPage() {
   return <BlogPageClient />;
 }
