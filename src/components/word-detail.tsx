@@ -100,12 +100,12 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
               <div>
                 {word.slug ? (
                     <Link href={`/word/${word.slug}`} className="group">
-                        <CardTitle className="font-headline text-4xl text-primary group-hover:underline">
+                        <h2 className="font-headline text-4xl font-bold text-primary group-hover:underline">
                             {word.tamil}
-                        </CardTitle>
+                        </h2>
                     </Link>
                 ) : (
-                    <CardTitle className="font-headline text-4xl text-primary">{word.tamil}</CardTitle>
+                    <h2 className="font-headline text-4xl font-bold text-primary">{word.tamil}</h2>
                 )}
                 <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
               </div>
