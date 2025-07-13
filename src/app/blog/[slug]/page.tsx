@@ -11,20 +11,6 @@ import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import type { BlogPost } from '@/lib/types';
 import type { Timestamp } from 'firebase/firestore';
 
-// Let Next.js know about all the possible blog posts at build time
-export async function generateStaticParams() {
-    // Note: Querying with a `where` clause might require a composite index in Firestore.
-    // Fetching all and filtering in code is safer for simpler setups.
-    const snapshot = await getDocs(collection(db, 'blogPosts'));
-    const publishedPosts = snapshot.docs
-        .map(doc => doc.data())
-        .filter(post => post.status === 'published');
-    
-    return publishedPosts.map(post => ({
-        slug: post.slug,
-    }));
-}
-
 async function getPost(slug: string): Promise<BlogPost | null> {
     const q = query(collection(db, 'blogPosts'), where('slug', '==', slug), where('status', '==', 'published'), limit(1));
     const snapshot = await getDocs(q);

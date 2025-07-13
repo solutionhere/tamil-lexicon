@@ -29,23 +29,17 @@ async function getWordData(slug: string) {
             collection(db, 'words'), 
             where('tags', 'array-contains-any', word.tags),
             where('status', '==', 'published'),
-            where('id', '!=', word.id),
+            where('transliteration', '!=', word.transliteration),
             limit(5)
         );
         const relatedWordsSnapshot = await getDocs(relatedWordsQuery);
-        relatedWords = relatedWordsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Word));
+        relatedWords = relatedWordsSnapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() } as Word))
+            .filter(related => related.id !== word.id); // Final check to prevent self-relation
     }
 
 
     return { word, categories, locations, relatedWords };
-}
-
-// Generate static pages for each word at build time for better SEO
-export async function generateStaticParams() {
-  const wordsSnapshot = await getDocs(query(collection(db, 'words'), where('status', '==', 'published')));
-  return wordsSnapshot.docs.map(doc => ({
-    slug: doc.data().transliteration,
-  }));
 }
 
 // Generate dynamic metadata for each page for better SEO
