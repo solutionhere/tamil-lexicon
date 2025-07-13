@@ -15,7 +15,6 @@ import { flagWordAction } from '@/app/words/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-// Component for the submit button to show a pending state
 function FlagButton({ isFlagged }: { isFlagged?: boolean }) {
   const { pending } = useFormStatus();
   return (
@@ -59,7 +58,7 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
     }
   }, [state, toast]);
 
-  if (!word) {
+  if (!word || !word.slug) {
     return (
       <div className="flex h-full items-center justify-center bg-card p-8">
         <div className="text-center">
@@ -99,28 +98,20 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
           <CardHeader className="px-0">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                {word.slug ? (
-                    <Link href={`/word/${word.slug}`} className="group">
-                        <CardTitle className="font-headline text-4xl text-primary group-hover:underline">
-                            {word.tamil}
-                        </CardTitle>
-                    </Link>
-                ) : (
-                    <CardTitle className="font-headline text-4xl text-primary">
+                <Link href={`/word/${word.slug}`} className="group">
+                    <CardTitle className="font-headline text-4xl text-primary group-hover:underline">
                         {word.tamil}
                     </CardTitle>
-                )}
+                </Link>
                 <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {category && <Badge variant="secondary">{category.name}</Badge>}
                 {location && <Badge variant="secondary" className="flex items-center gap-1"><MapPin size={14} /> {location.name}</Badge>}
-                 {word.slug && (
-                    <Button variant="ghost" size="icon" onClick={handleShare} title="Copy link">
-                        <LinkIcon className="h-4 w-4" />
-                        <span className="sr-only">Copy link</span>
-                    </Button>
-                 )}
+                <Button variant="ghost" size="icon" onClick={handleShare} title="Copy link">
+                    <LinkIcon className="h-4 w-4" />
+                    <span className="sr-only">Copy link</span>
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -165,12 +156,12 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
               </div>
             </div>
              <Separator />
-              {word.slug && relatedWords && relatedWords.length > 0 && (
+              {relatedWords && relatedWords.length > 0 && (
                 <div>
                     <h4 className="mb-2 font-headline text-lg font-semibold">Related Words</h4>
                     <div className="flex flex-wrap gap-2">
                         {relatedWords.map(relatedWord => (
-                            relatedWord.slug && (
+                            (relatedWord && relatedWord.slug) && (
                                 <Button key={relatedWord.id} variant="link" asChild className="p-0 h-auto">
                                     <Link href={`/word/${relatedWord.slug}`}>
                                         {relatedWord.tamil}
