@@ -28,7 +28,7 @@ export type Word = {
   status: 'published' | 'pending';
   isFlagged?: boolean;
   userId?: string;
-  createdAt: Timestamp;
+  createdAt: Timestamp | string;
 };
 
 export type QuizQuestion = {

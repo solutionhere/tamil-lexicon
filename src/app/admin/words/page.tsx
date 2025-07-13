@@ -145,7 +145,7 @@ export default function ManageWordsPage() {
             return {
                 id: doc.id,
                 ...data,
-                createdAt: createdAtTimestamp?.toDate ? createdAtTimestamp.toDate() : new Date(),
+                createdAt: createdAtTimestamp?.toDate ? createdAtTimestamp.toDate().toISOString() : new Date().toISOString(),
             } as Word;
         });
         
