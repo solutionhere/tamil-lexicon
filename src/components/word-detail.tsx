@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useActionState } from 'react';
@@ -73,6 +74,7 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
   const location = locations.find(l => l.id === word.location);
 
   const handleShare = () => {
+    if (!word) return;
     const url = `${window.location.origin}/word/${word.slug}`;
     navigator.clipboard.writeText(url);
     toast({
