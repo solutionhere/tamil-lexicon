@@ -7,7 +7,7 @@ import { ArrowLeft, UserCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, DocumentData } from 'firebase/firestore';
 import type { BlogPost } from '@/lib/types';
 import type { Timestamp } from 'firebase/firestore';
 

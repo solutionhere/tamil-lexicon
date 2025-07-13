@@ -1,3 +1,4 @@
+
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -6,20 +7,29 @@ import { WordDetail } from '@/components/word-detail';
 import type { Word, Category, Location } from '@/lib/types';
 import { ArrowLeft } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, DocumentData } from 'firebase/firestore';
 
 async function getWordData(slug: string) {
-    const wordsQuery = query(collection(db, 'words'), where('slug', '==', slug), limit(1));
+    // First, try to query by the new 'slug' field
+    const slugQuery = query(collection(db, 'words'), where('slug', '==', slug), limit(1));
+    let wordsSnapshot = await getDocs(slugQuery);
+
+    // If no word is found by slug, fall back to transliteration for older data
+    if (wordsSnapshot.empty) {
+        const translitQuery = query(collection(db, 'words'), where('transliteration', '==', slug), limit(1));
+        wordsSnapshot = await getDocs(translitQuery);
+    }
+    
+    const word = wordsSnapshot.empty ? null : { id: wordsSnapshot.docs[0].id, ...wordsSnapshot.docs[0].data() } as Word;
+
     const categoriesQuery = collection(db, 'categories');
     const locationsQuery = collection(db, 'locations');
 
-    const [wordsSnapshot, categoriesSnapshot, locationsSnapshot] = await Promise.all([
-        getDocs(wordsQuery),
+    const [categoriesSnapshot, locationsSnapshot] = await Promise.all([
         getDocs(categoriesQuery),
         getDocs(locationsQuery),
     ]);
-
-    const word = wordsSnapshot.empty ? null : { id: wordsSnapshot.docs[0].id, ...wordsSnapshot.docs[0].data() } as Word;
+    
     const categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Category[];
     const locations = locationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Location[];
     
@@ -29,13 +39,12 @@ async function getWordData(slug: string) {
             collection(db, 'words'), 
             where('tags', 'array-contains-any', word.tags),
             where('status', '==', 'published'),
-            where('slug', '!=', word.slug),
+            where('__name__', '!=', word.id), // Use __name__ to compare document IDs
             limit(5)
         );
         const relatedWordsSnapshot = await getDocs(relatedWordsQuery);
         relatedWords = relatedWordsSnapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() } as Word))
-            .filter(related => related.id !== word.id); // Final check to prevent self-relation
+            .map(doc => ({ id: doc.id, ...doc.data() } as Word));
     }
 
 
