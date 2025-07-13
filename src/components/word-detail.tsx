@@ -99,15 +99,15 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 {word.slug ? (
-                    <Link href={`/word/${word.slug}`} className="group">
-                        <h2 className="font-headline text-4xl font-bold text-primary group-hover:underline">
-                            {word.tamil}
-                        </h2>
-                    </Link>
-                ) : (
-                    <h2 className="font-headline text-4xl font-bold text-primary">
-                        {word.tamil}
+                  <Link href={`/word/${word.slug}`} className="group">
+                    <h2 className="font-headline text-4xl font-bold text-primary group-hover:underline">
+                      {word.tamil}
                     </h2>
+                  </Link>
+                ) : (
+                  <h2 className="font-headline text-4xl font-bold text-primary">
+                    {word.tamil}
+                  </h2>
                 )}
                 <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
               </div>
