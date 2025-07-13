@@ -1,3 +1,4 @@
+
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -12,20 +13,28 @@ import type { Timestamp } from 'firebase/firestore';
 
 // Let Next.js know about all the possible blog posts at build time
 export async function generateStaticParams() {
-    const snapshot = await getDocs(query(collection(db, 'blogPosts'), where('status', '==', 'published')));
-    return snapshot.docs.map(doc => ({
-        slug: doc.data().slug,
+    // Note: Querying with a `where` clause might require a composite index in Firestore.
+    // Fetching all and filtering in code is safer for simpler setups.
+    const snapshot = await getDocs(collection(db, 'blogPosts'));
+    const publishedPosts = snapshot.docs
+        .map(doc => doc.data())
+        .filter(post => post.status === 'published');
+    
+    return publishedPosts.map(post => ({
+        slug: post.slug,
     }));
 }
 
 async function getPost(slug: string): Promise<BlogPost | null> {
     const q = query(collection(db, 'blogPosts'), where('slug', '==', slug), where('status', '==', 'published'), limit(1));
     const snapshot = await getDocs(q);
+
     if (snapshot.empty) {
         return null;
     }
     const doc = snapshot.docs[0];
     const data = doc.data();
+
     // Ensure timestamp is converted to a serializable format (ISO string)
     const publishedAt = (data.publishedAt as Timestamp).toDate().toISOString();
 
