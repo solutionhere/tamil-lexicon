@@ -1,3 +1,4 @@
+
 'use client';
 
 import { WordForm } from '@/components/submission-form';
@@ -10,6 +11,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import type { Category, Location } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 export default function SubmitPage() {
   const [categories, setCategories] = useState<Category[]>([]);
