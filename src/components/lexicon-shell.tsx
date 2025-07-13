@@ -134,6 +134,17 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
     await signInWithGoogle();
     setShowLoginPrompt(false);
   }
+  
+  const relatedWords = useMemo(() => {
+    if (!selectedWord || !selectedWord.tags || selectedWord.tags.length === 0) {
+        return [];
+    }
+    return words.filter(word => 
+        word.id !== selectedWord.id &&
+        word.tags?.some(tag => selectedWord.tags?.includes(tag))
+    ).slice(0, 5); // Limit to 5 related words
+  }, [selectedWord, words]);
+
 
   return (
     <SidebarProvider>
@@ -159,7 +170,7 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
                 />
               </div>
               <div className="hidden overflow-y-auto bg-card md:block">
-                 <WordDetail word={selectedWord} categories={categories} locations={locations} />
+                 <WordDetail word={selectedWord} categories={categories} locations={locations} relatedWords={selectedWord ? relatedWords : []} />
               </div>
             </main>
           </div>
