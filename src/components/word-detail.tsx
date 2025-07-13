@@ -74,7 +74,7 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
   const location = locations.find(l => l.id === word.location);
 
   const handleShare = () => {
-    if (!word) return;
+    if (!word || !word.slug) return;
     const url = `${window.location.origin}/word/${word.slug}`;
     navigator.clipboard.writeText(url);
     toast({
@@ -99,20 +99,28 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
           <CardHeader className="px-0">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <Link href={`/word/${word.slug}`} className="group">
-                  <CardTitle className="font-headline text-4xl text-primary group-hover:underline">
-                    {word.tamil}
-                  </CardTitle>
-                </Link>
+                {word.slug ? (
+                    <Link href={`/word/${word.slug}`} className="group">
+                        <CardTitle className="font-headline text-4xl text-primary group-hover:underline">
+                            {word.tamil}
+                        </CardTitle>
+                    </Link>
+                ) : (
+                    <CardTitle className="font-headline text-4xl text-primary">
+                        {word.tamil}
+                    </CardTitle>
+                )}
                 <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {category && <Badge variant="secondary">{category.name}</Badge>}
                 {location && <Badge variant="secondary" className="flex items-center gap-1"><MapPin size={14} /> {location.name}</Badge>}
-                 <Button variant="ghost" size="icon" onClick={handleShare} title="Copy link">
-                    <LinkIcon className="h-4 w-4" />
-                    <span className="sr-only">Copy link</span>
-                </Button>
+                 {word.slug && (
+                    <Button variant="ghost" size="icon" onClick={handleShare} title="Copy link">
+                        <LinkIcon className="h-4 w-4" />
+                        <span className="sr-only">Copy link</span>
+                    </Button>
+                 )}
               </div>
             </div>
           </CardHeader>
@@ -162,11 +170,13 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
                     <h4 className="mb-2 font-headline text-lg font-semibold">Related Words</h4>
                     <div className="flex flex-wrap gap-2">
                         {relatedWords.map(relatedWord => (
-                            <Button key={relatedWord.id} variant="link" asChild className="p-0 h-auto">
-                                <Link href={`/word/${relatedWord.slug}`}>
-                                    {relatedWord.tamil}
-                                </Link>
-                            </Button>
+                            relatedWord.slug && (
+                                <Button key={relatedWord.id} variant="link" asChild className="p-0 h-auto">
+                                    <Link href={`/word/${relatedWord.slug}`}>
+                                        {relatedWord.tamil}
+                                    </Link>
+                                </Button>
+                            )
                         ))}
                     </div>
                 </div>
