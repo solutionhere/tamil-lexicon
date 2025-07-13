@@ -1,5 +1,5 @@
 
-name: Build and Deploy to GitHub Pages
+name: Build and Deploy to Firebase Hosting
 
 on:
   push:
@@ -34,15 +34,11 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
           NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
-          # The basePath is set in next.config.js, this is not needed here
-          # but is kept for reference if you ever need to override it.
-
-      - name: Add .nojekyll file
-        run: touch ./out/.nojekyll
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
+      
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
-          cname: ${{ secrets.CNAME }} # Optional: if you have a custom domain
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_TAMIL_LEXICON }}' # You will need to create this secret
+          channelId: live
+          projectId: '${{ vars.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}' # You will need to create this variable
