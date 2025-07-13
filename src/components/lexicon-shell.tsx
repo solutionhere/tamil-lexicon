@@ -44,37 +44,6 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
   const [usage, setUsage] = useState<Usage>({ count: 0, date: '' });
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  useEffect(() => {
-    // This runs only on the client, after hydration
-    if (user) return; // Don't track usage for logged-in users
-
-    const today = new Date().toISOString().split('T')[0];
-    let storedUsage: Usage;
-
-    try {
-        const item = localStorage.getItem('lexiconUsage');
-        storedUsage = item ? JSON.parse(item) : { count: 0, date: today };
-
-        if (storedUsage.date !== today) {
-            // It's a new day, reset the count
-            storedUsage = { count: 0, date: today };
-            localStorage.setItem('lexiconUsage', JSON.stringify(storedUsage));
-        }
-    } catch (error) {
-        // If parsing fails, reset to default
-        storedUsage = { count: 0, date: today };
-    }
-    
-    setUsage(storedUsage);
-  }, [user]); // Rerun if user logs in/out
-
-  useEffect(() => {
-    if (words.length > 0 && !selectedWord) {
-      setSelectedWord(words[0]);
-    }
-  }, [words, selectedWord]);
-
-
   const filteredWords = useMemo(() => {
     return words.filter(word => {
       const searchLower = searchQuery.toLowerCase();
@@ -99,6 +68,40 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
       return matchesSearch && matchesCategory && matchesLocation;
     });
   }, [searchQuery, selectedCategories, selectedLocation, words, locations]);
+
+  useEffect(() => {
+    if (filteredWords.length > 0 && !selectedWord) {
+      setSelectedWord(filteredWords[0]);
+    } else if (filteredWords.length === 0) {
+      setSelectedWord(null);
+    }
+  }, [filteredWords, selectedWord]);
+
+
+  useEffect(() => {
+    // This runs only on the client, after hydration
+    if (user) return; // Don't track usage for logged-in users
+
+    const today = new Date().toISOString().split('T')[0];
+    let storedUsage: Usage;
+
+    try {
+        const item = localStorage.getItem('lexiconUsage');
+        storedUsage = item ? JSON.parse(item) : { count: 0, date: today };
+
+        if (storedUsage.date !== today) {
+            // It's a new day, reset the count
+            storedUsage = { count: 0, date: today };
+            localStorage.setItem('lexiconUsage', JSON.stringify(storedUsage));
+        }
+    } catch (error) {
+        // If parsing fails, reset to default
+        storedUsage = { count: 0, date: today };
+    }
+    
+    setUsage(storedUsage);
+  }, [user]); // Rerun if user logs in/out
+
   
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories(prev =>
@@ -176,7 +179,7 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
                 />
               </div>
               <div className="hidden overflow-y-auto bg-card md:block">
-                 <WordDetail word={selectedWord} categories={categories} locations={locations} relatedWords={selectedWord ? relatedWords : []} />
+                 <WordDetail word={selectedWord} categories={categories} locations={locations} relatedWords={relatedWords} />
               </div>
             </main>
           </div>
