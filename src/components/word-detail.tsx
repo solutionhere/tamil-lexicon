@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Volume2, BookOpen, MapPin, Flag, Loader2, AlertCircle, Link as LinkIcon, Share2, Tag } from 'lucide-react';
+import { Volume2, BookOpen, MapPin, Flag, Loader2, AlertCircle, Share2, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { flagWordAction } from '@/app/words/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -98,18 +98,18 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
           <CardHeader className="px-0">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h2 className="font-headline text-4xl font-bold text-primary">
-                    {word.tamil}
-                </h2>
-                <div className="flex items-center gap-2">
-                    <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
-                    {word.slug && (
-                        <Link href={`/word/${word.slug}`} title="View word page" className="text-muted-foreground hover:text-primary">
-                            <LinkIcon className="h-4 w-4" />
-                            <span className="sr-only">View word page</span>
-                        </Link>
-                    )}
-                </div>
+                {word.slug ? (
+                    <Link href={`/word/${word.slug}`} className="group">
+                        <h2 className="font-headline text-4xl font-bold text-primary group-hover:underline">
+                            {word.tamil}
+                        </h2>
+                    </Link>
+                ) : (
+                    <h2 className="font-headline text-4xl font-bold text-primary">
+                        {word.tamil}
+                    </h2>
+                )}
+                <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {category && <Badge variant="secondary">{category.name}</Badge>}
