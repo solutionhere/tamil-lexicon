@@ -19,7 +19,7 @@ export async function generateStaticParams() {
 }
 
 async function getPost(slug: string): Promise<BlogPost | null> {
-    const q = query(collection(db, 'blogPosts'), where('slug', '==', slug), limit(1));
+    const q = query(collection(db, 'blogPosts'), where('slug', '==', slug), where('status', '==', 'published'), limit(1));
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
         return null;
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
         title: post.title,
         description: description,
         type: 'article',
-        publishedTime: post.publishedAt,
+        publishedTime: post.publishedAt as string,
         authors: [post.author.name],
     }
   };
