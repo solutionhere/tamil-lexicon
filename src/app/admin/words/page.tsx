@@ -61,12 +61,14 @@ const WordActionCell = ({ word, onActionComplete }: { word: Word; onActionComple
   return (
     <TableCell className="text-right">
       <div className="flex items-center justify-end gap-1">
-        <Button variant="ghost" size="icon" asChild title="View Word Page" >
-            <Link href={`/word/${word.slug}`} target="_blank">
-              <Eye className="h-4 w-4" />
-              <span className="sr-only">View Word</span>
-            </Link>
-        </Button>
+        {word.slug && (
+            <Button variant="ghost" size="icon" asChild title="View Word Page" >
+                <Link href={`/word/${word.slug}`} target="_blank">
+                  <Eye className="h-4 w-4" />
+                  <span className="sr-only">View Word</span>
+                </Link>
+            </Button>
+        )}
         {word.status === 'pending' && (
           <>
             <form action={approveFormAction}><input type="hidden" name="wordId" value={word.id} /><ActionButton icon={CheckCircle} text="Approve Word" pendingText="Approving..." className="text-green-600" /></form>
