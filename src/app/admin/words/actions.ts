@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { wordUpdateSchema, submissionSchema } from '@/lib/schemas';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, deleteDoc, addDoc, collection, getDoc } from 'firebase/firestore';
+import { slugify } from '@/lib/utils';
 
 type ActionState = {
   message: string;
@@ -85,7 +86,7 @@ export async function deleteWordAction(
     revalidatePath('/admin/words');
     revalidatePath('/');
     if (wordData) {
-        revalidatePath(`/word/${wordData.transliteration}`);
+        revalidatePath(`/word/${wordData.slug}`);
     }
     return { message: 'Successfully deleted word.', success: true };
   } catch (e) {
@@ -109,6 +110,7 @@ export async function updateWordAction(
   try {
     const wordData = {
         ...rest,
+        slug: slugify(rest.transliteration),
         tamil: tamilWord,
         example: {
             tamil: exampleTamil,
@@ -119,7 +121,7 @@ export async function updateWordAction(
     await updateDoc(doc(db, 'words', wordId), wordData);
     revalidatePath('/admin/words');
     revalidatePath('/');
-    revalidatePath(`/word/${wordData.transliteration}`);
+    revalidatePath(`/word/${wordData.slug}`);
     revalidatePath(`/admin/words/${wordId}/edit`);
     return { message: `Successfully updated "${wordData.transliteration}".`, success: true };
   } catch (e) {
@@ -142,6 +144,7 @@ export async function addWordAction(
     const { exampleTamil, exampleEnglish, tamilWord, tags, ...rest } = validatedFields.data;
     const wordData = {
         ...rest,
+        slug: slugify(rest.transliteration),
         tamil: tamilWord,
         example: {
             tamil: exampleTamil,

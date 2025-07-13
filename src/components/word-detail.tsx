@@ -73,7 +73,7 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
   const location = locations.find(l => l.id === word.location);
 
   const handleShare = () => {
-    const url = `${window.location.origin}/word/${word.transliteration}`;
+    const url = `${window.location.origin}/word/${word.slug}`;
     navigator.clipboard.writeText(url);
     toast({
       title: 'Link Copied!',
@@ -97,7 +97,7 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
           <CardHeader className="px-0">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <Link href={`/word/${word.transliteration}`} className="group">
+                <Link href={`/word/${word.slug}`} className="group">
                   <CardTitle className="font-headline text-4xl text-primary group-hover:underline">
                     {word.tamil}
                   </CardTitle>
@@ -161,7 +161,7 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
                     <div className="flex flex-wrap gap-2">
                         {relatedWords.map(relatedWord => (
                             <Button key={relatedWord.id} variant="link" asChild className="p-0 h-auto">
-                                <Link href={`/word/${relatedWord.transliteration}`}>
+                                <Link href={`/word/${relatedWord.slug}`}>
                                     {relatedWord.tamil}
                                 </Link>
                             </Button>

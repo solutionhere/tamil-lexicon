@@ -9,7 +9,7 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 
 async function getWordData(slug: string) {
-    const wordsQuery = query(collection(db, 'words'), where('transliteration', '==', slug), limit(1));
+    const wordsQuery = query(collection(db, 'words'), where('slug', '==', slug), limit(1));
     const categoriesQuery = collection(db, 'categories');
     const locationsQuery = collection(db, 'locations');
 
@@ -29,7 +29,7 @@ async function getWordData(slug: string) {
             collection(db, 'words'), 
             where('tags', 'array-contains-any', word.tags),
             where('status', '==', 'published'),
-            where('transliteration', '!=', word.transliteration),
+            where('slug', '!=', word.slug),
             limit(5)
         );
         const relatedWordsSnapshot = await getDocs(relatedWordsQuery);

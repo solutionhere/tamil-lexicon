@@ -14,6 +14,7 @@ export type Location = {
 
 export type Word = {
   id: string;
+  slug: string;
   tamil: string;
   transliteration: string;
   definition: string;

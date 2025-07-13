@@ -22,7 +22,7 @@ export async function flagWordAction(
       await updateDoc(wordRef, { isFlagged: true });
       const wordData = wordDoc.data();
       revalidatePath("/");
-      revalidatePath(`/word/${wordData.transliteration}`);
+      revalidatePath(`/word/${wordData.slug}`);
       revalidatePath("/admin/words");
       return { message: `The word "${wordData.transliteration}" has been reported. Thank you!` };
     } else {

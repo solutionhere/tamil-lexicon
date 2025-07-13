@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { submissionSchema } from '@/lib/schemas';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { slugify } from '@/lib/utils';
 
 export type SubmissionState = {
   message?: string;
@@ -34,6 +35,7 @@ export async function submitWord(
     const { exampleTamil, exampleEnglish, tamilWord, tags, ...rest } = validatedFields.data;
     const wordData = {
         ...rest,
+        slug: slugify(rest.transliteration),
         tamil: tamilWord,
         example: {
             tamil: exampleTamil,
