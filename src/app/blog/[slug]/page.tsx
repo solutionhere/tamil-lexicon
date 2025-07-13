@@ -1,67 +1,91 @@
+'use client';
 
-import { notFound } from 'next/navigation';
+import { useParams, notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserCircle } from 'lucide-react';
+import { ArrowLeft, UserCircle, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit, DocumentData } from 'firebase/firestore';
 import type { BlogPost } from '@/lib/types';
 import type { Timestamp } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
-async function getPost(slug: string): Promise<BlogPost | null> {
-    const q = query(collection(db, 'blogPosts'), where('slug', '==', slug.toLowerCase()), where('status', '==', 'published'), limit(1));
-    const snapshot = await getDocs(q);
+export default function BlogPostPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    if (snapshot.empty) {
-        return null;
-    }
-    const doc = snapshot.docs[0];
-    const data = doc.data();
+  useEffect(() => {
+    if (!slug) return;
 
-    // Ensure timestamp is converted to a serializable format (ISO string)
-    const publishedAt = (data.publishedAt as Timestamp).toDate().toISOString();
+    const getPost = async (slug: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const q = query(
+          collection(db, 'blogPosts'),
+          where('slug', '==', slug.toLowerCase()),
+          where('status', '==', 'published'),
+          limit(1)
+        );
+        const snapshot = await getDocs(q);
 
-    return {
-        id: doc.id,
-        ...data,
-        publishedAt: publishedAt,
-    } as BlogPost;
-}
+        if (snapshot.empty) {
+          setPost(null);
+        } else {
+          const doc = snapshot.docs[0];
+          const data = doc.data();
+          const publishedAt = (data.publishedAt as Timestamp).toDate().toISOString();
+          setPost({
+            id: doc.id,
+            ...data,
+            publishedAt: publishedAt,
+          } as BlogPost);
+        }
+      } catch (e) {
+        console.error("Error fetching post:", e);
+        setError("Failed to load the blog post. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    getPost(slug);
+  }, [slug]);
 
-function stripHtml(html: string){
-    if (!html) return '';
-    // This simple regex is safe for server-side execution.
-    return html.replace(/<[^>]*>?/gm, '');
-}
-
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = await getPost(params.slug);
-
-  if (!post) {
-    return { title: 'Post not found - Tamil Lexicon Blog' };
+  if (loading) {
+    return (
+      <div className="container mx-auto max-w-3xl px-4 py-12">
+        <Skeleton className="h-8 w-36 mb-4" />
+        <Skeleton className="h-12 w-3/4 mb-4" />
+        <Skeleton className="h-6 w-1/2 mb-8" />
+        <div className="space-y-4">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+        </div>
+      </div>
+    );
   }
 
-  const description = stripHtml(post.content).substring(0, 160);
-
-  return {
-    title: `${post.title} - Tamil Lexicon Blog`,
-    description: description,
-    openGraph: {
-        title: post.title,
-        description: description,
-        type: 'article',
-        publishedTime: post.publishedAt as string,
-        authors: [post.author.name],
-    }
-  };
-}
-
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug);
+  if (error) {
+     return (
+        <div className="container mx-auto max-w-3xl px-4 py-12">
+             <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+            </Alert>
+        </div>
+     )
+  }
 
   if (!post) {
     notFound();
@@ -107,4 +131,9 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
       </div>
     </div>
   );
+}
+
+export async function generateStaticParams() {
+    // Return an empty array to indicate that all blog posts will be dynamically rendered on the client.
+    return [];
 }
