@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Volume2, BookOpen, MapPin, Flag, Loader2, AlertCircle, Link as LinkIcon, Tag } from 'lucide-react';
+import { Volume2, BookOpen, MapPin, Flag, Loader2, AlertCircle, Link as LinkIcon, Share2, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { flagWordAction } from '@/app/words/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -97,24 +97,28 @@ export function WordDetail({ word, categories, locations, relatedWords = [] }: W
         <Card className="border-none shadow-none">
           <CardHeader className="px-0">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                {word.slug ? (
-                    <Link href={`/word/${word.slug}`} className="group">
-                        <h2 className="font-headline text-4xl font-bold text-primary group-hover:underline">
-                            {word.tamil}
-                        </h2>
-                    </Link>
-                ) : (
-                    <h2 className="font-headline text-4xl font-bold text-primary">{word.tamil}</h2>
+              <div className="flex items-center gap-4">
+                <div>
+                  <h2 className="font-headline text-4xl font-bold text-primary">
+                      {word.tamil}
+                  </h2>
+                  <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
+                </div>
+                {word.slug && (
+                    <Button variant="ghost" size="icon" asChild title="View word page">
+                        <Link href={`/word/${word.slug}`}>
+                            <LinkIcon className="h-5 w-5" />
+                            <span className="sr-only">View word page</span>
+                        </Link>
+                    </Button>
                 )}
-                <CardDescription className="mt-1 text-xl">{word.transliteration}</CardDescription>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {category && <Badge variant="secondary">{category.name}</Badge>}
                 {location && <Badge variant="secondary" className="flex items-center gap-1"><MapPin size={14} /> {location.name}</Badge>}
                 {word.slug && (
                     <Button variant="ghost" size="icon" onClick={handleShare} title="Copy link">
-                        <LinkIcon className="h-4 w-4" />
+                        <Share2 className="h-4 w-4" />
                         <span className="sr-only">Copy link</span>
                     </Button>
                 )}
