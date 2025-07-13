@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useTransition, useCallback } from 'react';
 import type { Word, Category, Location } from '@/lib/types';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { LexiconHeader } from '@/components/layout/lexicon-header';
@@ -19,10 +19,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-provider';
-
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs, limit, orderBy, type Query, type DocumentData, type Timestamp } from 'firebase/firestore';
+import { useDebounce } from '@/hooks/use-debounce';
 
 interface LexiconShellProps {
-  words: Word[];
+  initialWords: Word[];
   categories: Category[];
   locations: Location[];
 }
@@ -34,48 +36,74 @@ type Usage = {
   date: string; // YYYY-MM-DD
 };
 
-export function LexiconShell({ words, categories, locations }: LexiconShellProps) {
+export function LexiconShell({ initialWords, categories, locations }: LexiconShellProps) {
   const { user, signInWithGoogle } = useAuth();
+
+  const [words, setWords] = useState<Word[]>(initialWords);
+  const [isFetchingWords, startFetchingWords] = useTransition();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [selectedWord, setSelectedWord] = useState<Word | null>(null);
+  const [selectedWord, setSelectedWord] = useState<Word | null>(initialWords[0] || null);
   
   const [usage, setUsage] = useState<Usage>({ count: 0, date: '' });
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  const filteredWords = useMemo(() => {
-    return words.filter(word => {
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch =
-        searchQuery === '' ||
-        word.tamil.toLowerCase().includes(searchLower) ||
-        word.transliteration.toLowerCase().includes(searchLower) ||
-        word.definition.toLowerCase().includes(searchLower);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-      const matchesCategory =
-        selectedCategories.length === 0 || selectedCategories.includes(word.category);
+  const fetchWords = useCallback(() => {
+    startFetchingWords(async () => {
+      let q: Query<DocumentData> = query(collection(db, 'words'), where('status', '==', 'published'));
       
-      const locationHierarchy = [selectedLocation];
+      // The search query is case-sensitive, so we search for the lowercase version
+      if (debouncedSearchQuery) {
+          const queryLower = debouncedSearchQuery.toLowerCase();
+          q = query(q, where('transliteration', '>=', queryLower), where('transliteration', '<=', queryLower + '\uf8ff'), limit(25));
+      }
+      
+      if (selectedCategories.length > 0) {
+        q = query(q, where('category', 'in', selectedCategories));
+      }
+      
       if (selectedLocation) {
-        const children = locations.filter(l => l.parent === selectedLocation).map(l => l.id);
-        locationHierarchy.push(...children);
+        // This query requires a composite index in Firestore.
+        // The error message in the browser console will provide a direct link to create it.
+        q = query(q, where('location', '==', selectedLocation));
       }
 
-      const matchesLocation =
-        !selectedLocation || locationHierarchy.includes(word.location);
+      if (!debouncedSearchQuery) {
+          q = query(q, orderBy('createdAt', 'desc'), limit(50));
+      }
 
-      return matchesSearch && matchesCategory && matchesLocation;
+      try {
+        const snapshot = await getDocs(q);
+        const fetchedWords = snapshot.docs.map(doc => {
+           const data = doc.data();
+           const createdAt = (data.createdAt as Timestamp)?.toDate ? (data.createdAt as Timestamp).toDate().toISOString() : new Date().toISOString();
+           return {
+               id: doc.id,
+               ...data,
+               createdAt,
+           } as Word;
+        });
+        setWords(fetchedWords);
+        if (fetchedWords.length > 0) {
+            setSelectedWord(fetchedWords[0]);
+        } else {
+            setSelectedWord(null);
+        }
+      } catch (error) {
+        console.error("Error fetching words:", error);
+        setWords([]);
+        setSelectedWord(null);
+      }
     });
-  }, [searchQuery, selectedCategories, selectedLocation, words, locations]);
+  }, [debouncedSearchQuery, selectedCategories, selectedLocation]);
 
   useEffect(() => {
-    if (filteredWords.length > 0 && !selectedWord) {
-      setSelectedWord(filteredWords[0]);
-    } else if (filteredWords.length === 0) {
-      setSelectedWord(null);
-    }
-  }, [filteredWords, selectedWord]);
+      fetchWords();
+  }, [fetchWords]);
 
 
   useEffect(() => {
@@ -173,9 +201,10 @@ export function LexiconShell({ words, categories, locations }: LexiconShellProps
             <main className="grid flex-1 overflow-hidden md:grid-cols-[40%_60%] lg:grid-cols-[35%_65%]">
               <div className="overflow-y-auto border-r border-border">
                 <WordList
-                  words={filteredWords}
+                  words={words}
                   selectedWord={selectedWord}
                   onWordSelect={handleWordSelect}
+                  isLoading={isFetchingWords}
                 />
               </div>
               <div className="hidden overflow-y-auto bg-card md:block">
